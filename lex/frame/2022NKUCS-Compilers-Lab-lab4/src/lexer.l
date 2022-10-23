@@ -431,8 +431,8 @@ linecommentbegin "//"
 {ID} {
     string text="";
     text+=yytext;
+    
     if(isDeclare){
-       
         int index=find_id(text,rank_now);
         if(index!=-1)
         {
@@ -452,8 +452,9 @@ linecommentbegin "//"
     int i;
     for(i=rank_now;i>=0;i--){
         int n=find_id(text,i);
-        if(n!=-1){
-            address=to_string(reinterpret_cast<long long>(&symbol_table[n]));
+        
+        if(n!=-1 and symbol_table[n].end==unknown){
+            address=to_string(reinterpret_cast<long long>(&symbol_table[n]))+"\tindex:"+to_string(n);
             break;
         }
     }

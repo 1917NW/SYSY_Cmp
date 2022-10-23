@@ -406,7 +406,7 @@ linecommentbegin "//"
     int i;
     for(i=rank_now;i>=0;i--){
         int n=find_id(text,i);
-        if(n!=-1){
+        if(n!=-1 and symbol_table[n].end==unknown){
             address=to_string(reinterpret_cast<long long>(&symbol_table[n]));
             break;
         }
