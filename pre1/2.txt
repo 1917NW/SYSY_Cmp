@@ -1,0 +1,19 @@
+
+output.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <output>:
+   0:	55                   	push   %rbp
+   1:	48 89 e5             	mov    %rsp,%rbp
+   4:	48 83 ec 10          	sub    $0x10,%rsp
+   8:	89 7d fc             	mov    %edi,-0x4(%rbp)
+   b:	8b 75 fc             	mov    -0x4(%rbp),%esi
+   e:	48 bf 00 00 00 00 00 	movabs $0x0,%rdi
+  15:	00 00 00 
+  18:	b0 00                	mov    $0x0,%al
+  1a:	e8 00 00 00 00       	callq  1f <output+0x1f>
+  1f:	48 83 c4 10          	add    $0x10,%rsp
+  23:	5d                   	pop    %rbp
+  24:	c3                   	retq   

@@ -1,0 +1,67 @@
+
+fib2.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <add>:
+   0:	55                   	push   %rbp
+   1:	48 89 e5             	mov    %rsp,%rbp
+   4:	89 7d fc             	mov    %edi,-0x4(%rbp)
+   7:	89 75 f8             	mov    %esi,-0x8(%rbp)
+   a:	8b 45 fc             	mov    -0x4(%rbp),%eax
+   d:	03 45 f8             	add    -0x8(%rbp),%eax
+  10:	5d                   	pop    %rbp
+  11:	c3                   	retq   
+  12:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
+  19:	00 00 00 
+  1c:	0f 1f 40 00          	nopl   0x0(%rax)
+
+0000000000000020 <main>:
+  20:	55                   	push   %rbp
+  21:	48 89 e5             	mov    %rsp,%rbp
+  24:	48 83 ec 30          	sub    $0x30,%rsp
+  28:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%rbp)
+  2f:	c7 45 f8 00 00 00 00 	movl   $0x0,-0x8(%rbp)
+  36:	c7 45 f4 01 00 00 00 	movl   $0x1,-0xc(%rbp)
+  3d:	c7 45 e4 01 00 00 00 	movl   $0x1,-0x1c(%rbp)
+  44:	c7 45 f0 01 00 00 00 	movl   $0x1,-0x10(%rbp)
+  4b:	48 bf 00 00 00 00 00 	movabs $0x0,%rdi
+  52:	00 00 00 
+  55:	48 8d 75 e8          	lea    -0x18(%rbp),%rsi
+  59:	b0 00                	mov    $0x0,%al
+  5b:	e8 00 00 00 00       	callq  60 <main+0x40>
+  60:	8b 75 f8             	mov    -0x8(%rbp),%esi
+  63:	48 bf 00 00 00 00 00 	movabs $0x0,%rdi
+  6a:	00 00 00 
+  6d:	89 45 e0             	mov    %eax,-0x20(%rbp)
+  70:	b0 00                	mov    $0x0,%al
+  72:	e8 00 00 00 00       	callq  77 <main+0x57>
+  77:	8b 75 f4             	mov    -0xc(%rbp),%esi
+  7a:	48 bf 00 00 00 00 00 	movabs $0x0,%rdi
+  81:	00 00 00 
+  84:	89 45 dc             	mov    %eax,-0x24(%rbp)
+  87:	b0 00                	mov    $0x0,%al
+  89:	e8 00 00 00 00       	callq  8e <main+0x6e>
+  8e:	8b 45 f0             	mov    -0x10(%rbp),%eax
+  91:	3b 45 e8             	cmp    -0x18(%rbp),%eax
+  94:	0f 8d 32 00 00 00    	jge    cc <main+0xac>
+  9a:	8b 45 f4             	mov    -0xc(%rbp),%eax
+  9d:	89 45 ec             	mov    %eax,-0x14(%rbp)
+  a0:	8b 7d f8             	mov    -0x8(%rbp),%edi
+  a3:	8b 75 f4             	mov    -0xc(%rbp),%esi
+  a6:	e8 00 00 00 00       	callq  ab <main+0x8b>
+  ab:	89 45 f4             	mov    %eax,-0xc(%rbp)
+  ae:	8b 7d f4             	mov    -0xc(%rbp),%edi
+  b1:	b0 00                	mov    $0x0,%al
+  b3:	e8 00 00 00 00       	callq  b8 <main+0x98>
+  b8:	8b 4d ec             	mov    -0x14(%rbp),%ecx
+  bb:	89 4d f8             	mov    %ecx,-0x8(%rbp)
+  be:	8b 4d f0             	mov    -0x10(%rbp),%ecx
+  c1:	83 c1 01             	add    $0x1,%ecx
+  c4:	89 4d f0             	mov    %ecx,-0x10(%rbp)
+  c7:	e9 c2 ff ff ff       	jmpq   8e <main+0x6e>
+  cc:	8b 45 fc             	mov    -0x4(%rbp),%eax
+  cf:	48 83 c4 30          	add    $0x30,%rsp
+  d3:	5d                   	pop    %rbp
+  d4:	c3                   	retq   
