@@ -9,6 +9,7 @@ int main()
     int a;
     a = 0x0000aC;
     int b;
+    int c,d=b,m;
     {
         int b;
     }

@@ -28,6 +28,7 @@
     extern FILE *yyout;
     int rank_now=0;
     bool isDeclare=false;
+    bool isLeftValue=true;
     
    struct symbol_descriptor{
         string id;
@@ -208,7 +209,7 @@ linecommentbegin "//"
 }
 
 "=" {
-    isDeclare=false;
+    isLeftValue=false;
     #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("ASSIGN\t=\t"+to_string(yylineno));
     #else
@@ -298,6 +299,7 @@ linecommentbegin "//"
 }
 
 "," {
+    isLeftValue=true;
      #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("COMMA\t,\t"+to_string(yylineno));
     #else
@@ -315,6 +317,7 @@ linecommentbegin "//"
 
 ";" {
     isDeclare=false;
+    isLeftValue=true;
     #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("SEMICOLON\t;\t"+to_string(yylineno));
     #else
@@ -434,22 +437,22 @@ linecommentbegin "//"
 {ID} {
     string text="";
     text+=yytext;
-    
-    if(isDeclare){
-        int index=find_id(text,rank_now);
-        if(index!=-1)
-        {
-            if(symbol_table[index].end==unknown){
-                DEBUG_FOR_LAB4("重复定义");
+    if(isLeftValue){
+        if(isDeclare){
+            int index=find_id(text,rank_now);
+            if(index!=-1)
+            {
+                if(symbol_table[index].end==unknown){
+                    DEBUG_FOR_LAB4("重复定义");
             }
             else{
                 add_id(text);
             }
-        }
-        else
-            add_id(text);
+            }
+            else
+                add_id(text);
+            }
     }
-    
     string address;
 
     int i;
