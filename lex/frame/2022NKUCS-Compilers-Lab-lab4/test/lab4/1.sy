@@ -1,6 +1,9 @@
 int a;
-/*abc*/
+/*abc\n
+
+*/
 //
+
 int main()
 {
     int a;

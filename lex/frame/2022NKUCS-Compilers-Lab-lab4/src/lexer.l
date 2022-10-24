@@ -208,6 +208,7 @@ linecommentbegin "//"
 }
 
 "=" {
+    isDeclare=false;
     #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("ASSIGN\t=\t"+to_string(yylineno));
     #else
@@ -421,12 +422,14 @@ linecommentbegin "//"
 }
 
 {blockcommentbegin} {BEGIN BLOCKCOMMENT;}
-<BLOCKCOMMENT>{blockcommentelement} {}
+
+<BLOCKCOMMENT>{blockcommentelement} {if(strcmp(yytext,"\n")==0)yylineno++;}
 <BLOCKCOMMENT>{blockcommentend} {BEGIN INITIAL;}
 
 {linecommentbegin} {BEGIN LINECOMMENT;}
 <LINECOMMENT>{linecommentelement} {}
-<LINECOMMENT>{linecommentend} {BEGIN INITIAL;}
+<LINECOMMENT>{linecommentend} {BEGIN INITIAL;yylineno++;}
+
 
 {ID} {
     string text="";
