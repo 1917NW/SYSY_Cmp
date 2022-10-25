@@ -29,6 +29,7 @@
     int rank_now=0;
     bool isDeclare=false;
     bool isLeftValue=true;
+    int isFunctionArg=0;
     
    struct symbol_descriptor{
         string id;
@@ -49,10 +50,10 @@
         return -1;
     }
 
-    void add_id(string id){
+    void add_id(string id,int rank){
         symbol_descriptor sd;
         sd.id=id;
-        sd.rank=rank_now;
+        sd.rank=rank;
         sd.start=yylineno;
         sd.end=unknown;
         symbol_table.push_back(sd);
@@ -299,7 +300,10 @@ linecommentbegin "//"
 }
 
 "," {
-    isLeftValue=true;
+    if(!isFunctionArg)
+    {
+        isLeftValue=true;
+    }
      #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("COMMA\t,\t"+to_string(yylineno));
     #else
@@ -342,20 +346,25 @@ linecommentbegin "//"
 }
 
 "(" {
+   isFunctionArg++;
     #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("LPAREN\t(\t"+to_string(yylineno));
     #else
         return LPAREN;
     #endif
 }
+
 ")" {
+    isFunctionArg--;
     #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("RPAREN\t)\t"+to_string(yylineno));
     #else
     return RPAREN;
     #endif
 }
+
 "{" {
+    isDeclare=false;
     rank_now++;
     #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("LBRACE\t{\t"+to_string(yylineno));
@@ -363,6 +372,7 @@ linecommentbegin "//"
         return LBRACE;
     #endif
 }
+
 "}" {
     for(int i=symbol_table.size()-1;i>=0;i--){
         if(symbol_table[i].rank==rank_now && symbol_table[i].end==unknown)
@@ -437,25 +447,54 @@ linecommentbegin "//"
 {ID} {
     string text="";
     text+=yytext;
-    if(isLeftValue){
-        if(isDeclare){
+    string address;
+    //如果是左值且是声明语句
+    if(isLeftValue && isDeclare){
+        //如果为函数形参声明
+        if(isFunctionArg){
+            int index=find_id(text,rank_now+1);
+            if(index!=-1)
+            {
+                if(symbol_table[index].end==unknown){
+                    DEBUG_FOR_LAB4("重复定义");
+                }
+                else{
+                    add_id(text,rank_now+1);
+                    int index=symbol_table.size()-1;
+                    address=to_string(reinterpret_cast<long long>(&symbol_table[index]))+"\tindex:"+to_string(index);
+                }
+            }
+            else{
+                add_id(text,rank_now+1);
+                int index=symbol_table.size()-1;
+                address=to_string(reinterpret_cast<long long>(&symbol_table[index]))+"\tindex:"+to_string(index);
+            }
+        }
+         //如果为正常的声明语句
+        else{
             int index=find_id(text,rank_now);
             if(index!=-1)
             {
                 if(symbol_table[index].end==unknown){
                     DEBUG_FOR_LAB4("重复定义");
+                }
+                else{
+                    add_id(text,rank_now);
+                    int index=symbol_table.size()-1;
+                    address=to_string(reinterpret_cast<long long>(&symbol_table[index]))+"\tindex:"+to_string(index);
+                }
             }
             else{
-                add_id(text);
+                add_id(text,rank_now);
+                int index=symbol_table.size()-1;
+                address=to_string(reinterpret_cast<long long>(&symbol_table[index]))+"\tindex:"+to_string(index);
             }
-            }
-            else
-                add_id(text);
-            }
+        }
     }
-    string address;
-
-    int i;
+//如果为右值，或者为左值但是非声明标识符
+int i=0;
+if(!isDeclare || !isLeftValue){
+    
     for(i=rank_now;i>=0;i--){
         int n=find_id(text,i);
         
@@ -465,6 +504,8 @@ linecommentbegin "//"
         }
     }
     
+}
+
     #ifdef ONLY_FOR_LEX
 
     if(i==-1){

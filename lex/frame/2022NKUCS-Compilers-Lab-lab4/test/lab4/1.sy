@@ -3,13 +3,21 @@ int a;
 
 */
 //
-
+int test(int a,int b){
+    int m;
+    a=3;
+    return 1;
+}
+int n;
 int main()
 {
+
     int a;
     a = 0x0000aC;
     int b;
-    int c,d=b,m;
+    int d;
+    int c=test(a,test(b,d));
+   
     {
         int b;
     }
