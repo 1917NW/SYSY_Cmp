@@ -27,15 +27,20 @@
     extern FILE *yyin; 
     extern FILE *yyout;
     int rank_now=0;
+    //在分号的结束关闭isDeclare，是为了支持多变量的声明，比如int a,b,c;
     bool isDeclare=false;
+
+    //引入isLeftValue是为了支持多变量声明时的初始化，比如int a=3,b=d;
     bool isLeftValue=true;
+
+    //引入isFunctionArg是为了对"()"计数，并且对于函数定义里面变量声明进行区分
     int isFunctionArg=0;
     
    struct symbol_descriptor{
         string id;
-        int rank;
-        int start;
-        int end;
+        int rank; //作用域等级，用于寻找变量时区分重名变量
+        int start;//变量声明的行
+        int end;//变量作用域结束的行
     };
 
     vector<symbol_descriptor> symbol_table;
@@ -68,6 +73,8 @@
 DECIMIAL ([1-9][0-9]*|0)
 OCTONARY 0([0-7]*)
 HEXADECIMIAL (0x|0X)([0-9A-Ea-e]*)
+Float (([0-9]*(\.[0-9]+)|[0-9]+\.?)([eE][+-]?[0-9]+)?)
+
 
 ID [[:alpha:]_][[:alpha:][:digit:]_]*
 EOL (\r\n|\n|\r)
@@ -84,7 +91,6 @@ linecommentbegin "//"
 %x LINECOMMENT
 
 %%
-
 
 "int" {
     /*
@@ -300,6 +306,10 @@ linecommentbegin "//"
 }
 
 "," {
+    //如果现在是在'('内，则不把isLeftValue置为true,而是维持原状
+    //否则，则重置isLeftValue
+    //如果是函数内部的变量声明，则为true
+    //如果不是函数内部的变量声明，则与赋值运算符=相关
     if(!isFunctionArg)
     {
         isLeftValue=true;
@@ -311,15 +321,11 @@ linecommentbegin "//"
     #endif
 }
 
-"." {
-     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("DOT\t.\t"+to_string(yylineno));
-    #else
-        return DOT;
-    #endif
-}
+
 
 ";" {
+    //关闭isDeclare
+    //打开isLeftValue
     isDeclare=false;
     isLeftValue=true;
     #ifdef ONLY_FOR_LEX
@@ -346,6 +352,7 @@ linecommentbegin "//"
 }
 
 "(" {
+    //记录'('的个数
    isFunctionArg++;
     #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("LPAREN\t(\t"+to_string(yylineno));
@@ -364,6 +371,7 @@ linecommentbegin "//"
 }
 
 "{" {
+    //在进入语句块时，先关闭函数声明
     isDeclare=false;
     rank_now++;
     #ifdef ONLY_FOR_LEX
@@ -374,6 +382,7 @@ linecommentbegin "//"
 }
 
 "}" {
+    //遇到"}",就更新符号表中的同等级下未定义的符号的作用域末尾
     for(int i=symbol_table.size()-1;i>=0;i--){
         if(symbol_table[i].rank==rank_now && symbol_table[i].end==unknown)
             symbol_table[i].end=yylineno;
@@ -389,6 +398,7 @@ linecommentbegin "//"
 }
 
 
+
 {DECIMIAL} {
     string num="NUM\t";num=num+yytext;
      #ifdef ONLY_FOR_LEX
@@ -399,40 +409,44 @@ linecommentbegin "//"
     }
 
 {OCTONARY} {
-    string num="ONUM\t";
-    int dnum=0;
-    for(int i=strlen(yytext)-1,count=0;i>=1;i--,count++){
-        dnum+=(yytext[i]-'0')*pow(8,count);
-    }
-    num+=to_string(dnum);
+    string t_num="ONUM\t";
+    int num;
+    sscanf(yytext, "%o", &num);
+    t_num+=to_string(num);
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4(num+"\t"+to_string(yylineno));
+        DEBUG_FOR_LAB4(t_num+"\t"+to_string(yylineno));
     #else
         return NUM;
     #endif
 }
  
 {HEXADECIMIAL} {
-    string num="HNUM\t";
-    int dnum=0;
-    for(int i=strlen(yytext)-1,count=0;i>=2;i--,count++){
-        if(isdigit(yytext[i]))
-        dnum+=(yytext[i]-'0')*pow(16,count);
+    string t_num="HNUM\t";
 
-        if(yytext[i]>=65 and yytext[i]<=70){
-            dnum+=(yytext[i]-'A'+10)*pow(16,count);
-        }
-        else if(yytext[i]>=97 and yytext[i]<=101){
-             dnum+=(yytext[i]-'a'+10)*pow(16,count);
-     }
-    }
-    num+=to_string(dnum);
+    int num;
+    sscanf(yytext,"%x",&num);
+
+    t_num+=to_string(num);
     #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4(num+"\t"+to_string(yylineno));
+        DEBUG_FOR_LAB4(t_num+"\t"+to_string(yylineno));
     #else
         return NUM;
     #endif
 }
+
+{Float} {
+    string t_num="FLOAT\t";
+    t_num+=yytext;
+
+    float num;
+    sscanf(yytext, "%f", &num);
+
+     #ifdef ONLY_FOR_LEX
+        DEBUG_FOR_LAB4(t_num+"\t"+to_string(yylineno));
+     #else
+        return NUM;
+     #endif
+    }
 
 {blockcommentbegin} {BEGIN BLOCKCOMMENT;}
 
@@ -448,7 +462,7 @@ linecommentbegin "//"
     string text="";
     text+=yytext;
     string address;
-    //如果是左值且是声明语句
+    //如果是左值且是声明语句，添加到符号表，并且返回最后一个元素的索引
     if(isLeftValue && isDeclare){
         //如果为函数形参声明
         if(isFunctionArg){
@@ -456,7 +470,7 @@ linecommentbegin "//"
             if(index!=-1)
             {
                 if(symbol_table[index].end==unknown){
-                    DEBUG_FOR_LAB4("重复定义");
+                    address="重复定义";
                 }
                 else{
                     add_id(text,rank_now+1);
@@ -476,7 +490,8 @@ linecommentbegin "//"
             if(index!=-1)
             {
                 if(symbol_table[index].end==unknown){
-                    DEBUG_FOR_LAB4("重复定义");
+                   address="重复定义";
+                    
                 }
                 else{
                     add_id(text,rank_now);
@@ -491,7 +506,7 @@ linecommentbegin "//"
             }
         }
     }
-//如果为右值，或者为左值但是非声明标识符
+//如果为右值，或者为左值且是非声明标识符,直接查找
 int i=0;
 if(!isDeclare || !isLeftValue){
     
@@ -509,7 +524,7 @@ if(!isDeclare || !isLeftValue){
     #ifdef ONLY_FOR_LEX
 
     if(i==-1){
-        DEBUG_FOR_LAB4("ID\t"+text+" 没有定义");
+        DEBUG_FOR_LAB4(to_string(i)+"ID\t"+text+" 没有定义");
     }
     else{
         string id="ID\t";
