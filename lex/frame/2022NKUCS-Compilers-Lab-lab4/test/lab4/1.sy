@@ -4,7 +4,7 @@ int a;
 */
 //
 int test(int a,int b){
-    int a;
+    a=1;
     int m;
     a=3;
     return 1;
@@ -19,7 +19,7 @@ int main()
     //十六进制的识别
     int b=0x00011;
     int d;
-    int c=test(a,test(b,d));
+    int c=test(a,d);
    
     {
         int b;

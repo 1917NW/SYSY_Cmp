@@ -30,7 +30,7 @@
     //在分号的结束关闭isDeclare，是为了支持多变量的声明，比如int a,b,c;
     bool isDeclare=false;
 
-    //引入isLeftValue是为了支持多变量声明时的初始化，比如int a=3,b=d;
+    //引入isLeftValue是为了支持多变量声明时的初始化，比如int a=c,b=d;
     bool isLeftValue=true;
 
     //引入isFunctionArg是为了对"()"计数，并且对于函数定义里面变量声明进行区分
