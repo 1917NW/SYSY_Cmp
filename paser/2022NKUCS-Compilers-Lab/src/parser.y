@@ -37,7 +37,7 @@
 %token RETURN
 
 %nterm <stmttype> Stmts Stmt AssignStmt ExprStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef
-%nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp MulExp
+%nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp MulExp UnaryExp
 %nterm <type> Type
 %nterm <vde> VarDef ConstDef
 %nterm <vvde> VarDefList ConstDefList
@@ -138,30 +138,33 @@ PrimaryExp
         $$ = new Constant(se);
     }
     ;
-/* UnaryExp
+UnaryExp
     :
     PrimaryExp{$$=$1;}
     | ADD UnaryExp {
-
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new UnaryExpr(se, UnaryExpr::ADD, $2);
     }
     | SUB UnaryExp {
-
+         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new UnaryExpr(se, UnaryExpr::SUB, $2);
     }
-    ; */
+    ;
+
 MulExp:
-    PrimaryExp {$$ = $1;}
+    UnaryExp {$$ = $1;}
     |
-    MulExp MUL PrimaryExp {
+    MulExp MUL UnaryExp {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::MUL, $1, $3);
     }
     |
-    MulExp DIV PrimaryExp {
+    MulExp DIV UnaryExp {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::DIV, $1, $3);
     }
     |
-    MulExp MOD PrimaryExp {
+    MulExp MOD UnaryExp {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::MOD, $1, $3);
     }

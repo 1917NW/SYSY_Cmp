@@ -1,5 +1,2 @@
-const int a = 10;
-int b=10;
-int main(){
-    return a;
-}
+
+int b=-1;
