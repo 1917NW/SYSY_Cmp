@@ -2,7 +2,8 @@
 #define __AST_H__
 
 #include <fstream>
-
+#include<vector>
+using namespace std;
 class SymbolEntry;
 
 class Node
@@ -30,7 +31,7 @@ private:
     int op;
     ExprNode *expr1, *expr2;
 public:
-    enum {ADD, SUB, AND, OR, LESS};
+    enum {ADD, SUB, AND, OR, LESS , MUL , DIV , MOD};
     BinaryExpr(SymbolEntry *se, int op, ExprNode*expr1, ExprNode*expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2){};
     void output(int level);
 };
@@ -70,12 +71,28 @@ public:
     void output(int level);
 };
 
+class VarDef_entry{
+    Id* id;
+    ExprNode* ep;
+public:
+    VarDef_entry(Id* id,ExprNode* ep):id(id),ep(ep){};
+    void output(int level);
+};
+
 class DeclStmt : public StmtNode
 {
 private:
-    Id *id;
+    vector<VarDef_entry> * p;
 public:
-    DeclStmt(Id *id) : id(id){};
+    DeclStmt(vector<VarDef_entry>* p) : p(p){};
+    void output(int level);
+};
+
+class ExprStmt : public StmtNode{
+private:
+    ExprNode* ep;
+public:
+    ExprStmt(ExprNode* ep):ep(ep){};
     void output(int level);
 };
 

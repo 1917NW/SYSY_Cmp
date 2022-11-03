@@ -20,7 +20,7 @@ std::string ConstantSymbolEntry::toStr()
     return buffer.str();
 }
 
-IdentifierSymbolEntry::IdentifierSymbolEntry(Type *type, std::string name, int scope) : SymbolEntry(type, SymbolEntry::VARIABLE), name(name)
+IdentifierSymbolEntry::IdentifierSymbolEntry(Type *type, std::string name, int scope,bool is_const) : SymbolEntry(type, SymbolEntry::VARIABLE), name(name),is_const(is_const)
 {
     this->scope = scope;
 }
@@ -70,6 +70,14 @@ SymbolTable::SymbolTable(SymbolTable *prev)
 SymbolEntry* SymbolTable::lookup(std::string name)
 {
     // Todo
+    SymbolTable * temp=identifiers;
+    while(temp!=nullptr){
+    if(temp->symbolTable.find(name)!=temp->symbolTable.end()){
+        return temp->symbolTable[name];
+    }
+    temp=temp->prev;
+    }
+
     return nullptr;
 }
 

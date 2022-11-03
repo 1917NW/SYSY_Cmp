@@ -52,7 +52,8 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     yyparse();
-    if(dump_ast)
+    if(dump_ast){
         ast.output();
+    }
     return 0;
 }

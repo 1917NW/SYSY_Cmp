@@ -109,13 +109,7 @@ linecommentbegin "//"
 }
 
 "float" {
-    /*
-    * Questions: 
-    *   Q1: Why we need to return INT in further labs?
-    *   A1: as the input of parser
-    *   Q2: What is "INT" actually?
-    *   A2: token
-    */
+   
     isDeclare=true;
     #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("FLOAT\tfloat\t"+to_string(yylineno));
@@ -136,7 +130,7 @@ linecommentbegin "//"
 #ifdef ONLY_FOR_LEX
         DEBUG_FOR_LAB4("CONST\tconst\t"+to_string(yylineno));
     #else
-        return RETURN;
+        return CONST;
     #endif
 }
 

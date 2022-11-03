@@ -6,6 +6,7 @@
     #include "parser.h"
     #include <ostream>
     #include <fstream>
+    #include <iostream>
     using namespace std;
 
     extern FILE *yyin; 
@@ -19,11 +20,21 @@
 %}
 
 DECIMIAL ([1-9][0-9]*|0)
+OCTONARY 0([0-7]*)
+HEXADECIMIAL (0x|0X)([0-9A-Ea-e]*)
 ID [[:alpha:]_][[:alpha:][:digit:]_]*
 EOL (\r\n|\n|\r)
 WHITE [\t ]
-%x BLOCKCOMMENT
 
+blockcommentelement  .|\n
+blockcommentend "*/"
+blockcommentbegin \/\*
+
+linecommentelement .
+linecommentend \n
+linecommentbegin "//"
+%x BLOCKCOMMENT
+%x LINECOMMENT
 %%
 
 "int" {
@@ -41,6 +52,20 @@ WHITE [\t ]
         DEBUG_FOR_LAB4("VOID\tvoid");
     return VOID;
 }
+"float" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("FLOAT\tfloat");
+    return FLOAT;
+}
+
+"const" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("CONSt\tconst");
+    return CONST;
+}
+
+
+
 "if" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("IF\tif");
@@ -51,27 +76,135 @@ WHITE [\t ]
         DEBUG_FOR_LAB4("ELSE\telse");
     return ELSE;
 };
+"while" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("WHILE\twhile");
+    return WHILE;
+};
+"continue" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("CONTINUE\tcontinue");
+    return CONTINUE;
+};
+
+
 "return" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("RETURN\treturn");
     return RETURN;
 }
 
+"==" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("EQ\t==");
+    return EQ;
+};
+
+"<=" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("LOE\t<=");
+    return LOE;
+};
+
+">=" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("GOE\t>=");
+    return GOE;
+};
+
+"!=" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("NE\t!=");
+    return NE;
+};
+
+
 "=" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("ASSIGN\t=");
     return ASSIGN;
-}
+};
+
 "<" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("LESS\t<");
     return LESS;
+};
+
+">" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("MORE\t<");
+    return MORE;
+};
+
+"&&" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("ANL\t&&");
+    return ANL;
 }
+
+"||" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("ORL\t||");
+    return ORL;
+};
+
+"!" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("NOT\t!");
+    return NOT;
+};
+
 "+" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("ADD\t+");
     return ADD;
 }
+
+"-" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("SUB\t-");
+    return SUB;
+};
+
+"*" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("MUL\t*");
+    return MUL;
+};
+
+
+"/" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("DIV\t/");
+    return DIV;
+};
+
+
+"%" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("MOD\t%");
+    return MOD;
+};
+
+"," {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("COMMA\t,");
+    return COMMA;
+};
+
+
+"[" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("LSQUARE\t[");
+    return LSQUARE;
+};
+
+"]" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("RSQUARE\t]");
+    return RSQUARE;
+};
 ";" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("SEMICOLON\t;");
@@ -101,9 +234,43 @@ WHITE [\t ]
 {DECIMIAL} {
     if(dump_tokens)
         DEBUG_FOR_LAB4(yytext);
-    yylval.itype = atoi(yytext);
+
+    if(yytext[0]=='-'){        
+    yylval.itype = -1*atoi(yytext+1);
+    cout<<"-"<<endl;
+    }
+    else if(yytext[0]=='+'){
+     yylval.itype = atoi(yytext+1);
+     cout<<"+"<<endl;
+    }
+    else{
+     yylval.itype = atoi(yytext);
+    }
     return INTEGER;
 }
+
+{HEXADECIMIAL} {
+    int num;
+    sscanf(yytext, "%x", &num);
+    yylval.itype=num;
+    return INTEGER;
+}
+
+{OCTONARY} {
+    int num;
+    sscanf(yytext, "%o", &num);
+    yylval.itype=num;
+    return INTEGER;
+}
+
+{blockcommentbegin} {BEGIN BLOCKCOMMENT;}
+
+<BLOCKCOMMENT>{blockcommentelement} {}
+<BLOCKCOMMENT>{blockcommentend} {BEGIN INITIAL;}
+
+{linecommentbegin} {BEGIN LINECOMMENT;}
+<LINECOMMENT>{linecommentelement} {}
+<LINECOMMENT>{linecommentend} {BEGIN INITIAL;}
 
 {ID} {
     if(dump_tokens)

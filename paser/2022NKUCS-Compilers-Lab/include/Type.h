@@ -8,7 +8,7 @@ class Type
 private:
     int kind;
 protected:
-    enum {INT, VOID, FUNC};
+    enum {INT, VOID, FUNC,CONSTINT};
 public:
     Type(int kind) : kind(kind) {};
     virtual ~Type() {};
@@ -32,6 +32,15 @@ class VoidType : public Type
 public:
     VoidType() : Type(Type::VOID){};
     std::string toStr();
+};
+
+class ConstIntType:public Type{
+    private:
+    int size;
+public:
+    ConstIntType(int size):Type(Type::CONSTINT),size(size){};
+    std::string toStr();
+
 };
 
 class FunctionType : public Type

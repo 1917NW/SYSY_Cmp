@@ -33,6 +33,7 @@ public:
 
     Compiler should create constant symbol entry for literal constant '1'.
 */
+//字面值常量
 class ConstantSymbolEntry : public SymbolEntry
 {
 private:
@@ -75,13 +76,15 @@ private:
     enum {GLOBAL, PARAM, LOCAL};
     std::string name;
     int scope;
+    bool is_const;
     // You can add any field you need here.
 
 public:
-    IdentifierSymbolEntry(Type *type, std::string name, int scope);
+    IdentifierSymbolEntry(Type *type, std::string name, int scope,bool is_const=false);
     virtual ~IdentifierSymbolEntry() {};
     std::string toStr();
     int getScope() const {return scope;};
+    bool isConst(){return is_const;}
     // You can add any function you need here.
 };
 

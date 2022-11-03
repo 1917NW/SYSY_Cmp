@@ -38,6 +38,15 @@ void BinaryExpr::output(int level)
         case LESS:
             op_str = "less";
             break;
+        case MUL:
+            op_str = "mul";
+            break;
+        case DIV:
+            op_str = "div";
+            break;
+        case MOD:
+            op_str = "mod";
+            break;
     }
     fprintf(yyout, "%*cBinaryExpr\top: %s\n", level, ' ', op_str.c_str());
     expr1->output(level + 4);
@@ -57,10 +66,16 @@ void Id::output(int level)
 {
     std::string name, type;
     int scope;
+    bool isConst;
     name = symbolEntry->toStr();
     type = symbolEntry->getType()->toStr();
     scope = dynamic_cast<IdentifierSymbolEntry*>(symbolEntry)->getScope();
+    isConst=dynamic_cast<IdentifierSymbolEntry*>(symbolEntry)->isConst();
+    if(!isConst)
     fprintf(yyout, "%*cId\tname: %s\tscope: %d\ttype: %s\n", level, ' ',
+            name.c_str(), scope, type.c_str());
+    else
+    fprintf(yyout, "%*cId\tname: %s\tscope: %d\ttype: const %s\n", level, ' ',
             name.c_str(), scope, type.c_str());
 }
 
@@ -76,13 +91,25 @@ void SeqNode::output(int level)
     stmt1->output(level + 4);
     stmt2->output(level + 4);
 }
-
+void VarDef_entry::output(int level){
+    fprintf(yyout, "%*cVarDef\n", level, ' ');
+    if(id!=nullptr)
+    id->output(level+4);
+    if(ep!=nullptr)
+    ep->output(level+4);
+}
 void DeclStmt::output(int level)
 {
     fprintf(yyout, "%*cDeclStmt\n", level, ' ');
-    id->output(level + 4);
+    for(auto i:*p){
+        i.output(level+4);
+    }
 }
 
+void ExprStmt::output(int level){
+    fprintf(yyout, "%*cExprStmt\n", level, ' ');
+    ep->output(level+4);
+}
 void IfStmt::output(int level)
 {
     fprintf(yyout, "%*cIfStmt\n", level, ' ');
