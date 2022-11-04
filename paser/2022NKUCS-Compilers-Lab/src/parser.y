@@ -264,7 +264,7 @@ VarDef
     ;
 
 VarDefList
-    : VarDefList COMMA VarDef{$$=$1;$$->push_back(*($3));}
+    : VarDefList COMMA VarDef{$$=$1;$$->push_back(*($3));delete $3;}
     | VarDef {$$=new vector<VarDef_entry>();$$->push_back(*($1));}
 
 DeclStmt
