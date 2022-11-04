@@ -36,8 +36,8 @@
 %token MUL DIV MOD
 %token RETURN
 
-%nterm <stmttype> Stmts Stmt AssignStmt ExprStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef
-%nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp MulExp UnaryExp
+%nterm <stmttype> Stmts Stmt AssignStmt ExprStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef WhileStmt
+%nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp MulExp UnaryExp EqExp
 %nterm <type> Type
 %nterm <vde> VarDef ConstDef
 %nterm <vvde> VarDefList ConstDefList
@@ -62,6 +62,7 @@ Stmt
     | ExprStmt{$$=$1;}
     | BlockStmt {$$=$1;}
     | IfStmt {$$=$1;}
+    | WhileStmt {$$=$1;}
     | ReturnStmt {$$=$1;}
     | DeclStmt {$$=$1;}
     | FuncDef {$$=$1;}
@@ -112,6 +113,10 @@ IfStmt
         $$ = new IfElseStmt($3, $5, $7);
     }
     ;
+WhileStmt
+    : WHILE LPAREN Cond RPAREN Stmt {
+        $$ = new WhileStmt($3,$5);
+    }
 ReturnStmt
     :
     RETURN Exp SEMICOLON{
@@ -137,6 +142,11 @@ PrimaryExp
         SymbolEntry *se = new ConstantSymbolEntry(TypeSystem::intType, $1);
         $$ = new Constant(se);
     }
+    |LPAREN Exp RPAREN
+    {
+        $$ = $2;
+    }
+    
     ;
 UnaryExp
     :
@@ -148,6 +158,10 @@ UnaryExp
     | SUB UnaryExp {
          SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new UnaryExpr(se, UnaryExpr::SUB, $2);
+    }
+    | NOT UnaryExp{
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new UnaryExpr(se, UnaryExpr::NOT, $2);
     }
     ;
 
@@ -194,12 +208,41 @@ RelExp
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::LESS, $1, $3);
     }
+    |
+    RelExp MORE AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::MORE, $1, $3);
+    }
+    |
+    RelExp LOE AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::LOE, $1, $3);
+    }
+    |
+    RelExp GOE AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::GOE, $1, $3);
+    }
     ;
+EqExp:
+    RelExp {$$ = $1;}
+    |EqExp EQ RelExp {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::EQ, $1, $3);
+    }
+    |EqExp NE RelExp {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::NE, $1, $3);
+    }
+
 LAndExp
     :
-    RelExp {$$ = $1;}
+    EqExp {$$ = $1;}
     |
-    LAndExp AND RelExp
+    LAndExp AND EqExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::AND, $1, $3);

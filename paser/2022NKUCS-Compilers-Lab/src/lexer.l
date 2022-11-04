@@ -21,7 +21,7 @@
 
 DECIMIAL ([1-9][0-9]*|0)
 OCTONARY 0([0-7]*)
-HEXADECIMIAL (0x|0X)([0-9A-Ea-e]*)
+HEXADECIMIAL (0x|0X)([0-9A-Fa-f]*)
 ID [[:alpha:]_][[:alpha:][:digit:]_]*
 EOL (\r\n|\n|\r)
 WHITE [\t ]
@@ -139,14 +139,14 @@ linecommentbegin "//"
 
 "&&" {
     if(dump_tokens)
-        DEBUG_FOR_LAB4("ANL\t&&");
-    return ANL;
+        DEBUG_FOR_LAB4("AND\t&&");
+    return AND;
 }
 
 "||" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("ORL\t||");
-    return ORL;
+    return OR;
 };
 
 "!" {
@@ -251,7 +251,9 @@ linecommentbegin "//"
 
 {HEXADECIMIAL} {
     int num;
+    cout<<yytext<<endl;
     sscanf(yytext, "%x", &num);
+    cout<<num<<endl;
     yylval.itype=num;
     return INTEGER;
 }

@@ -24,29 +24,46 @@ void BinaryExpr::output(int level)
     switch(op)
     {
         case ADD:
-            op_str = "add";
+            op_str = "+";
             break;
         case SUB:
-            op_str = "sub";
+            op_str = "-";
             break;
         case AND:
-            op_str = "and";
+            op_str = "&&";
             break;
         case OR:
-            op_str = "or";
+            op_str = "||";
             break;
         case LESS:
-            op_str = "less";
+            op_str = "<";
             break;
         case MUL:
-            op_str = "mul";
+            op_str = "*";
             break;
         case DIV:
-            op_str = "div";
+            op_str = "/";
             break;
         case MOD:
-            op_str = "mod";
+            op_str = "%";
             break;
+        case MORE:
+            op_str = ">";
+            break;
+        case LOE:
+            op_str = "<=";
+            break;
+        case GOE:
+            op_str = ">=";
+            break;
+        case EQ:
+            op_str="==";
+            break;
+        case NE:
+            op_str="!=";
+            break;
+      
+        
     }
     fprintf(yyout, "%*cBinaryExpr\top: %s\n", level, ' ', op_str.c_str());
     expr1->output(level + 4);
@@ -61,6 +78,9 @@ void UnaryExpr::output(int level){
             break;
         case SUB:
             op_str='-';
+            break;
+        case NOT:
+            op_str="!";
             break;
       }
       fprintf(yyout, "%*cUnaryExpr\tprefix: %s\n", level, ' ', op_str.c_str());
@@ -136,6 +156,12 @@ void IfElseStmt::output(int level)
     cond->output(level + 4);
     thenStmt->output(level + 4);
     elseStmt->output(level + 4);
+}
+
+void WhileStmt::output(int level){
+     fprintf(yyout, "%*cWhileStmt\n", level, ' ');
+     cond->output(level+4);
+     stmt->output(level+4);
 }
 
 void ReturnStmt::output(int level)
