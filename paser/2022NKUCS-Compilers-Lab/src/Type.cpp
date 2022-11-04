@@ -20,6 +20,19 @@ std::string VoidType::toStr()
 std::string FunctionType::toStr()
 {
     std::ostringstream buffer;
-    buffer << returnType->toStr() << "()";
+    int i=0;
+    buffer << returnType->toStr() << "(";
+    for(;i<(int)(paramsType.size()-1);i++){
+        if(paramsType[i].isConst())
+        buffer<<"const "<<paramsType[i].getType()->toStr();
+        else
+        buffer<<paramsType[i].getType()->toStr();
+        buffer<<",";
+    }
+    if(paramsType[i].isConst())
+        buffer<<"const "<<paramsType[i].getType()->toStr();
+        else
+        buffer<<paramsType[i].getType()->toStr();
+    buffer<<")";
     return buffer.str();
 }

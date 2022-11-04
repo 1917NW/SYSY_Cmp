@@ -164,6 +164,9 @@ void WhileStmt::output(int level){
      stmt->output(level+4);
 }
 
+void NullStmt::output(int level){
+     fprintf(yyout, "%*cNullStmt\n", level, ' ');
+}
 void ReturnStmt::output(int level)
 {
     fprintf(yyout, "%*cReturnStmt\n", level, ' ');
@@ -176,7 +179,10 @@ void AssignStmt::output(int level)
     lval->output(level + 4);
     expr->output(level + 4);
 }
-
+void FunctionParam::output(int level){
+    fprintf(yyout, "%*cParmVarDecl : \n", level, ' ');
+    id->output(level+4);
+}
 void FunctionDef::output(int level)
 {
     std::string name, type;
@@ -184,5 +190,9 @@ void FunctionDef::output(int level)
     type = se->getType()->toStr();
     fprintf(yyout, "%*cFunctionDefine function name: %s, type: %s\n", level, ' ', 
             name.c_str(), type.c_str());
+    if(functionParams!=nullptr){
+        for(auto i:*functionParams)
+            i.output(level+4);
+    }
     stmt->output(level + 4);
 }

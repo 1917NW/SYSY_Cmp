@@ -42,16 +42,24 @@ public:
     std::string toStr();
 
 };
-
+class type {
+    Type* t;
+    bool is_const;
+public:
+    type(Type* t,bool is_const):t(t),is_const(is_const){};
+    Type* getType(){return t;}
+    bool isConst(){return is_const;}
+};
 class FunctionType : public Type
 {
 private:
     Type *returnType;
-    std::vector<Type*> paramsType;
+    std::vector<type> paramsType;
 public:
-    FunctionType(Type* returnType, std::vector<Type*> paramsType) : 
+    FunctionType(Type* returnType, std::vector<type> paramsType) : 
     Type(Type::FUNC), returnType(returnType), paramsType(paramsType){};
     std::string toStr();
+    std::vector<type>* GetParamsType(){return &paramsType;};
 };
 
 class TypeSystem

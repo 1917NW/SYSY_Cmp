@@ -1,5 +1,10 @@
-int a=3;
+
+int add(int a,int b){
+    return a+b;
+}
+
 int main(){
-while(a!=0)
-    a=a+1;
+    int a=3;
+    int b=4;
+    add(3,4);
 }

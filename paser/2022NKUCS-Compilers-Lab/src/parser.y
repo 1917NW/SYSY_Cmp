@@ -8,6 +8,8 @@
     int yyerror( char const * );
     Type* Var_type;
     bool isConst=false;
+    bool isVoid=true;
+    vector<type>* NowFuncParamsType;
 }
 
 %code requires {
@@ -24,6 +26,9 @@
     Type* type;
     VarDef_entry* vde;
     vector<VarDef_entry> * vvde;
+
+    FunctionParam* fpa;
+    vector<FunctionParam> * vfpa;
 }
 
 %start Program
@@ -36,11 +41,13 @@
 %token MUL DIV MOD
 %token RETURN
 
-%nterm <stmttype> Stmts Stmt AssignStmt ExprStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef WhileStmt
+%nterm <stmttype> Stmts Stmt AssignStmt ExprStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef WhileStmt NullStmt
 %nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp MulExp UnaryExp EqExp
 %nterm <type> Type
 %nterm <vde> VarDef ConstDef
 %nterm <vvde> VarDefList ConstDefList
+%nterm <fpa> FuncFParam
+%nterm <vfpa> FuncFParams
 
 
 %precedence THEN
@@ -66,6 +73,7 @@ Stmt
     | ReturnStmt {$$=$1;}
     | DeclStmt {$$=$1;}
     | FuncDef {$$=$1;}
+    | NullStmt {$$=$1;}
     ;
 LVal
     : ID {
@@ -117,6 +125,9 @@ WhileStmt
     : WHILE LPAREN Cond RPAREN Stmt {
         $$ = new WhileStmt($3,$5);
     }
+NullStmt: SEMICOLON {
+        $$ = new NullStmt();
+}
 ReturnStmt
     :
     RETURN Exp SEMICOLON{
@@ -322,27 +333,61 @@ DeclStmt
     }
 
     ;
+
+FuncFParam:
+    Type ID{
+        //ToDo
+        SymbolEntry *se;
+        se=new IdentifierSymbolEntry(Var_type,$2,identifiers->getLevel(),false);
+        identifiers->install($2,se);
+        NowFuncParamsType->push_back(type($1,false));
+        $$=new FunctionParam(new Id(se));
+        delete []$2;
+    }
+    |CONST Type ID{
+
+        SymbolEntry *se;
+        se=new IdentifierSymbolEntry(Var_type,$3,identifiers->getLevel(),true);
+        identifiers->install($3,se);
+        NowFuncParamsType->push_back(type($2,true));
+        $$=new FunctionParam(new Id(se));
+        delete []$3;
+    }
+    |%empty {$$=nullptr;}
+    ;
+    
+FuncFParams
+    : FuncFParam {if($1!=nullptr){$$=new vector<FunctionParam>();$$->push_back(*($1));}else $$=nullptr;}
+    | FuncFParams COMMA FuncFParam {
+        $$=$1;$$->push_back(*($3));
+        delete $3;
+    }
+    
+
 FuncDef
     :
     Type ID {
         Type *funcType;
         funcType = new FunctionType($1,{});
+        NowFuncParamsType=((FunctionType*)funcType)->GetParamsType();
         SymbolEntry *se = new IdentifierSymbolEntry(funcType, $2, identifiers->getLevel());
         identifiers->install($2, se);
         identifiers = new SymbolTable(identifiers);
     }
-    LPAREN RPAREN
+    LPAREN FuncFParams RPAREN
     BlockStmt
     {
         SymbolEntry *se;
         se = identifiers->lookup($2);
         assert(se != nullptr);
-        $$ = new FunctionDef(se, $6);
+        $$ = new FunctionDef(se, $7,$5);
         SymbolTable *top = identifiers;
         identifiers = identifiers->getPrev();
         delete top;
         delete []$2;
     }
+    
+
     ;
 %%
 

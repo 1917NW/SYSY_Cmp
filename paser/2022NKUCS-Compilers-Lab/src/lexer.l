@@ -251,9 +251,7 @@ linecommentbegin "//"
 
 {HEXADECIMIAL} {
     int num;
-    cout<<yytext<<endl;
     sscanf(yytext, "%x", &num);
-    cout<<num<<endl;
     yylval.itype=num;
     return INTEGER;
 }
