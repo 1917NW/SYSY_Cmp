@@ -22,6 +22,7 @@ std::string FunctionType::toStr()
     std::ostringstream buffer;
     int i=0;
     buffer << returnType->toStr() << "(";
+    if(paramsType.size()!=0){
     for(;i<(int)(paramsType.size()-1);i++){
         if(paramsType[i].isConst())
         buffer<<"const "<<paramsType[i].getType()->toStr();
@@ -33,6 +34,7 @@ std::string FunctionType::toStr()
         buffer<<"const "<<paramsType[i].getType()->toStr();
         else
         buffer<<paramsType[i].getType()->toStr();
+    }
     buffer<<")";
     return buffer.str();
 }

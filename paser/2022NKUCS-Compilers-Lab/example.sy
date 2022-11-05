@@ -1,9 +1,7 @@
 
-int add(int a,int b){
-    return a+b;
+const int c=3;
+int main(){
+    return c;
 }
-int main(int c,int b,const int z){
-   int  a = 0xf;
-    b = 0xc;
-    add(a,c+b,-b,z+a/4*5);
-}
+
+

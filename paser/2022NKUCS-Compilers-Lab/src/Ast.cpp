@@ -198,9 +198,13 @@ void FunctionParam::output(int level){
 }
 void FunctionDef::output(int level)
 {
+    
     std::string name, type;
+    
     name = se->toStr();
+  
     type = se->getType()->toStr();
+
     fprintf(yyout, "%*cFunctionDefine function name: %s, type: %s\n", level, ' ', 
             name.c_str(), type.c_str());
     if(functionParams!=nullptr){

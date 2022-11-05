@@ -87,7 +87,6 @@ LVal
             delete [](char*)$1;
             assert(se != nullptr);
         }
-        fprintf(stdout, "identifier \"%s\" \n", (char*)$1);
         $$ = new Id(se);
         delete []$1;
     }
@@ -411,6 +410,7 @@ FuncDef
         se = identifiers->lookup($2);
         assert(se != nullptr);
 
+        
         //函数语句节点
         $$ = new FunctionDef(se, $7,$5);
 
