@@ -29,6 +29,8 @@
 
     FunctionParam* fpa;
     vector<FunctionParam> * vfpa;
+
+    vector<ExprNode*>* vepl;
 }
 
 %start Program
@@ -42,13 +44,13 @@
 %token RETURN
 
 %nterm <stmttype> Stmts Stmt AssignStmt ExprStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef WhileStmt NullStmt
-%nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp MulExp UnaryExp EqExp
+%nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp MulExp UnaryExp EqExp CallExp
 %nterm <type> Type
 %nterm <vde> VarDef ConstDef
 %nterm <vvde> VarDefList ConstDefList
 %nterm <fpa> FuncFParam
 %nterm <vfpa> FuncFParams
-
+%nterm <vepl> ExpList
 
 %precedence THEN
 %precedence ELSE
@@ -85,10 +87,13 @@ LVal
             delete [](char*)$1;
             assert(se != nullptr);
         }
+        fprintf(stdout, "identifier \"%s\" \n", (char*)$1);
         $$ = new Id(se);
         delete []$1;
     }
     ;
+
+//表达式语句
 ExprStmt:
     Exp SEMICOLON{
         $$=new ExprStmt($1);
@@ -143,7 +148,20 @@ Cond
     LOrExp {$$ = $1;}
     ;
 
-//最基础的表达式：ID和数字
+ExpList:
+    Exp {$$=new vector<ExprNode*>();$$->push_back($1);}
+    |ExpList COMMA Exp {$$=$1;$$->push_back($3);}
+
+CallExp:
+    ID LPAREN ExpList RPAREN{
+        //获取函数名对应的符号表项
+        SymbolEntry* se;
+        se=identifiers->lookup($1);
+        $$=new CallExpr(se,$3);
+    }
+
+
+//最基础的表达式：ID和数字，以及函数调用表达式
 PrimaryExp
     :
     LVal {
@@ -157,6 +175,7 @@ PrimaryExp
     {
         $$ = $2;
     }
+    |CallExp {$$=$1;}
     
     ;
 UnaryExp
@@ -210,6 +229,7 @@ AddExp
         $$ = new BinaryExpr(se, BinaryExpr::SUB, $1, $3);
     }
     ;
+
 RelExp
     :
     AddExp {$$ = $1;}
@@ -339,7 +359,11 @@ FuncFParam:
         //ToDo
         SymbolEntry *se;
         se=new IdentifierSymbolEntry(Var_type,$2,identifiers->getLevel(),false);
+
+        //把函数形参名放入到符号表链的第二个符号表中
         identifiers->install($2,se);
+
+        //向形参列表中加入形参的类型
         NowFuncParamsType->push_back(type($1,false));
         $$=new FunctionParam(new Id(se));
         delete []$2;
@@ -369,9 +393,15 @@ FuncDef
     Type ID {
         Type *funcType;
         funcType = new FunctionType($1,{});
+
+        //获取当前函数的形参列表
         NowFuncParamsType=((FunctionType*)funcType)->GetParamsType();
         SymbolEntry *se = new IdentifierSymbolEntry(funcType, $2, identifiers->getLevel());
+
+        //把函数名放到符号表链的第一个符号表中
         identifiers->install($2, se);
+
+        //进入符号表链中的第二个符号表
         identifiers = new SymbolTable(identifiers);
     }
     LPAREN FuncFParams RPAREN
@@ -380,7 +410,11 @@ FuncDef
         SymbolEntry *se;
         se = identifiers->lookup($2);
         assert(se != nullptr);
+
+        //函数语句节点
         $$ = new FunctionDef(se, $7,$5);
+
+        //删除符号表链中第二个符号表
         SymbolTable *top = identifiers;
         identifiers = identifiers->getPrev();
         delete top;

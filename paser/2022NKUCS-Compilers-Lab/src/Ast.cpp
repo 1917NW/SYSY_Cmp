@@ -18,6 +18,19 @@ void Ast::output()
         root->output(4);
 }
 
+void CallExpr::output(int level){
+   
+    std::string name,type;
+    name=symbolEntry->toStr();
+    type=symbolEntry->getType()->toStr();
+    fprintf(yyout, "%*cCallExpr \t function: %s %s\n", level, ' ',name.c_str(),type.c_str());
+    //输出表达式
+    
+    for(int i=0;i<(int)epl->size();i++){
+        (*epl)[i]->output(level+4);
+    }
+}
+
 void BinaryExpr::output(int level)
 {
     std::string op_str;
