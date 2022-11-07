@@ -289,9 +289,9 @@ linecommentbegin "//"
 
     //设置void putint(int)的类型
     Type *funcType;
-    vector<type> vtp;
-    type t(TypeSystem::intType,false);
-    vtp.push_back(t);
+    vector<Type*> vtp;
+
+    vtp.push_back(TypeSystem::intType);
     funcType = new FunctionType(TypeSystem::voidType,vtp);
     SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
 
@@ -317,7 +317,7 @@ linecommentbegin "//"
 
     //设置void getint()的类型
     Type *funcType;
-    vector<type> vtp;
+    vector<Type*> vtp;
     
     funcType = new FunctionType(TypeSystem::intType,vtp);
     SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
@@ -345,9 +345,9 @@ linecommentbegin "//"
 
     //设置void putch(int)的类型
     Type *funcType;
-    vector<type> vtp;
-    type t(TypeSystem::intType,false);
-    vtp.push_back(t);
+    vector<Type*> vtp;
+    
+    vtp.push_back(TypeSystem::intType);
     
     funcType = new FunctionType(TypeSystem::voidType,vtp);
     SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
@@ -376,7 +376,7 @@ linecommentbegin "//"
 
     //设置int getch()的类型
     Type *funcType;
-    vector<type> vtp;
+    vector<Type*> vtp;
     
     funcType = new FunctionType(TypeSystem::intType,vtp);
     SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());

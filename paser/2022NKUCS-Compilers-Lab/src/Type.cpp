@@ -1,15 +1,24 @@
 #include "Type.h"
 #include <sstream>
 
-IntType TypeSystem::commonInt = IntType(4);
-VoidType TypeSystem::commonVoid = VoidType();
+IntType TypeSystem::commonInt = IntType(4,false);
+IntType TypeSystem::constInt=IntType(4,true);
+VoidType TypeSystem::commonVoid = VoidType(false);
 
 Type* TypeSystem::intType = &commonInt;
 Type* TypeSystem::voidType = &commonVoid;
+Type* TypeSystem::constIntType=&constInt;
 
 std::string IntType::toStr()
 {
+    if(isConst())
+    return "const int";
+    else
     return "int";
+}
+
+Type* IntType::getConst(){
+    return TypeSystem::constIntType;
 }
 
 std::string VoidType::toStr()
@@ -24,16 +33,10 @@ std::string FunctionType::toStr()
     buffer << returnType->toStr() << "(";
     if(paramsType.size()!=0){
     for(;i<(int)(paramsType.size()-1);i++){
-        if(paramsType[i].isConst())
-        buffer<<"const "<<paramsType[i].getType()->toStr();
-        else
-        buffer<<paramsType[i].getType()->toStr();
+        buffer<<paramsType[i]->toStr();
         buffer<<",";
     }
-    if(paramsType[i].isConst())
-        buffer<<"const "<<paramsType[i].getType()->toStr();
-        else
-        buffer<<paramsType[i].getType()->toStr();
+        buffer<<paramsType[i]->toStr();
     }
     buffer<<")";
     return buffer.str();

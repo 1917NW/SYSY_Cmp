@@ -23,7 +23,7 @@ void CallExpr::output(int level){
     std::string name,type;
     name=symbolEntry->toStr();
     type=symbolEntry->getType()->toStr();
-    fprintf(yyout, "%*cCallExpr \t function: %s %s\n", level, ' ',name.c_str(),type.c_str());
+    fprintf(yyout, "%*cCallExpr \t function: %s type: %s\n", level, ' ',name.c_str(),type.c_str());
     //输出表达式
     if(epl!=nullptr){
     for(int i=0;i<(int)epl->size();i++){
@@ -113,22 +113,19 @@ void Id::output(int level)
 {
     std::string name, type;
     int scope;
-    bool isConst;
+    
     name = symbolEntry->toStr();
     type = symbolEntry->getType()->toStr();
     scope = dynamic_cast<IdentifierSymbolEntry*>(symbolEntry)->getScope();
-    isConst=dynamic_cast<IdentifierSymbolEntry*>(symbolEntry)->isConst();
-    if(!isConst)
     fprintf(yyout, "%*cId\tname: %s\tscope: %d\ttype: %s\n", level, ' ',
             name.c_str(), scope, type.c_str());
-    else
-    fprintf(yyout, "%*cId\tname: %s\tscope: %d\ttype: const %s\n", level, ' ',
-            name.c_str(), scope, type.c_str());
+   
 }
 
 void CompoundStmt::output(int level)
 {
     fprintf(yyout, "%*cCompoundStmt\n", level, ' ');
+    if(stmt!=nullptr)
     stmt->output(level + 4);
 }
 

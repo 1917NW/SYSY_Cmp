@@ -9,7 +9,7 @@
     Type* Var_type;
     bool isConst=false;
     bool isVoid=true;
-    vector<type>* NowFuncParamsType;
+    vector<Type*>* NowFuncParamsType;
 }
 
 %code requires {
@@ -67,6 +67,7 @@ Stmts
         $$ = new SeqNode($1, $2);
     }
     ;
+
 Stmt
     : AssignStmt {$$=$1;}
     | ExprStmt{$$=$1;}
@@ -99,6 +100,7 @@ ExprStmt:
         $$=new ExprStmt($1);
     };
 
+//赋值语句
 AssignStmt
     :
     LVal ASSIGN Exp SEMICOLON {
@@ -106,6 +108,7 @@ AssignStmt
     }
     ;
 
+//块语句
 BlockStmt
     :   LBRACE 
         {identifiers = new SymbolTable(identifiers);} 
@@ -116,8 +119,11 @@ BlockStmt
             identifiers = identifiers->getPrev();
             delete top;
         }
+        |LBRACE RBRACE { $$ = new CompoundStmt(nullptr);}
+
     ;
 
+//if语句
 IfStmt
     : IF LPAREN Cond RPAREN Stmt %prec THEN {
         $$ = new IfStmt($3, $5);
@@ -126,33 +132,45 @@ IfStmt
         $$ = new IfElseStmt($3, $5, $7);
     }
     ;
+
+//while语句
 WhileStmt
     : WHILE LPAREN Cond RPAREN Stmt {
         $$ = new WhileStmt($3,$5);
     }
+
+//空语句
 NullStmt: SEMICOLON {
         $$ = new NullStmt();
 }
+
+//返回语句
 ReturnStmt
     :
     RETURN Exp SEMICOLON{
         $$ = new ReturnStmt($2);
     }
     ;
+
+//表达式
 Exp
     :
     AddExp {$$ = $1;}
     ;
+
+//条件
 Cond
     :
     LOrExp {$$ = $1;}
     ;
 
+//表达式列表
 ExpList:
     Exp {$$=new vector<ExprNode*>();$$->push_back($1);}
     |ExpList COMMA Exp {$$=$1;$$->push_back($3);}
     |%empty {$$=nullptr;}
 
+//函数调用表达式
 CallExp:
     ID LPAREN ExpList RPAREN{
         //获取函数名对应的符号表项
@@ -179,6 +197,8 @@ PrimaryExp
     |CallExp {$$=$1;}
     
     ;
+
+//一元表达式
 UnaryExp
     :
     PrimaryExp{$$=$1;}
@@ -196,6 +216,7 @@ UnaryExp
     }
     ;
 
+//乘法表达式
 MulExp:
     UnaryExp {$$ = $1;}
     |
@@ -214,6 +235,7 @@ MulExp:
         $$ = new BinaryExpr(se, BinaryExpr::MOD, $1, $3);
     }
 
+//加法表达式
 AddExp
     :
     MulExp {$$ = $1;}
@@ -231,6 +253,7 @@ AddExp
     }
     ;
 
+//关系表达式
 RelExp
     :
     AddExp {$$ = $1;}
@@ -259,6 +282,8 @@ RelExp
         $$ = new BinaryExpr(se, BinaryExpr::GOE, $1, $3);
     }
     ;
+
+//相等表达式
 EqExp:
     RelExp {$$ = $1;}
     |EqExp EQ RelExp {
@@ -270,6 +295,7 @@ EqExp:
         $$ = new BinaryExpr(se, BinaryExpr::NE, $1, $3);
     }
 
+//逻辑与表达式
 LAndExp
     :
     EqExp {$$ = $1;}
@@ -280,6 +306,8 @@ LAndExp
         $$ = new BinaryExpr(se, BinaryExpr::AND, $1, $3);
     }
     ;
+
+//逻辑或表达式
 LOrExp
     :
     LAndExp {$$ = $1;}
@@ -290,10 +318,20 @@ LOrExp
         $$ = new BinaryExpr(se, BinaryExpr::OR, $1, $3);
     }
     ;
+
+//类型
 Type
     : INT {
+        if(!isConst){
         $$ = TypeSystem::intType;
         Var_type=TypeSystem::intType;
+        }
+        else{
+        $$ = TypeSystem::constIntType;
+        Var_type=TypeSystem::constIntType;
+        isConst=false;
+        }
+        
 
     }
     | VOID {
@@ -302,15 +340,17 @@ Type
     }
     ;
 
+//常量定义
 ConstDef
     :ID ASSIGN Exp {
         SymbolEntry *se;
-        se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel(),true);
+        se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel());
         identifiers->install($1, se);
         $$=new VarDef_entry(new Id(se),$3);
         delete []$1;
     }
     ;
+//常量定义列表
 ConstDefList
     : ConstDef {
         $$=new vector<VarDef_entry>();$$->push_back(*($1));
@@ -320,67 +360,71 @@ ConstDefList
     }
     ;
 
-    
+//变量定义
 VarDef
     :ID { 
         SymbolEntry *se;
-        se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel(),false);
+        se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel());
         identifiers->install($1, se);
         $$=new VarDef_entry(new Id(se),nullptr);
         delete []$1;
         }
     |ID ASSIGN Exp {
         SymbolEntry *se;
-        se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel(),false);
+        se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel());
         identifiers->install($1, se);
         $$=new VarDef_entry(new Id(se),$3);
         delete []$1;
     }
     ;
 
+//变量定义列表
 VarDefList
     : VarDefList COMMA VarDef{$$=$1;$$->push_back(*($3));delete $3;}
     | VarDef {$$=new vector<VarDef_entry>();$$->push_back(*($1));}
 
+//声明语句
 DeclStmt
     :
-    Type 
-    VarDefList SEMICOLON {
+    Type VarDefList SEMICOLON {
         $$ = new DeclStmt($2);
     }
-    |CONST 
-    Type ConstDefList SEMICOLON {
-        $$ = new DeclStmt($3);
+    |
+    CONST{isConst=true;} Type ConstDefList SEMICOLON {
+        
+        $$ = new DeclStmt($4);
     }
 
     ;
 
+//函数形参
 FuncFParam:
     Type ID{
         //ToDo
         SymbolEntry *se;
-        se=new IdentifierSymbolEntry(Var_type,$2,identifiers->getLevel(),false);
+        se=new IdentifierSymbolEntry(Var_type,$2,identifiers->getLevel());
 
         //把函数形参名放入到符号表链的第二个符号表中
         identifiers->install($2,se);
 
         //向形参列表中加入形参的类型
-        NowFuncParamsType->push_back(type($1,false));
+        NowFuncParamsType->push_back($1);
         $$=new FunctionParam(new Id(se));
         delete []$2;
     }
-    |CONST Type ID{
-
+    |CONST {isConst=true;}
+    Type ID{
         SymbolEntry *se;
-        se=new IdentifierSymbolEntry(Var_type,$3,identifiers->getLevel(),true);
-        identifiers->install($3,se);
-        NowFuncParamsType->push_back(type($2,true));
+        se=new IdentifierSymbolEntry(Var_type,$4,identifiers->getLevel());
+        identifiers->install($4,se);
+        NowFuncParamsType->push_back($3);
         $$=new FunctionParam(new Id(se));
-        delete []$3;
+        delete []$4;
     }
     |%empty {$$=nullptr;}
     ;
     
+//函数形参列表
 FuncFParams
     : FuncFParam {if($1!=nullptr){$$=new vector<FunctionParam>();$$->push_back(*($1));}else $$=nullptr;}
     | FuncFParams COMMA FuncFParam {
@@ -389,6 +433,7 @@ FuncFParams
     }
     
 
+//函数定义
 FuncDef
     :
     Type ID {
@@ -423,6 +468,7 @@ FuncDef
         delete top;
         delete []$2;
     }
+    
     
 
     ;
