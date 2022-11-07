@@ -13,6 +13,7 @@
     extern FILE *yyout;
     extern bool dump_tokens;
 
+    
     void DEBUG_FOR_LAB4(std::string s){
         std::string DEBUG_INFO = "[DEBUG LAB4]: \t" + s + "\n";
         fputs(DEBUG_INFO.c_str(), yyout);
@@ -296,7 +297,6 @@ linecommentbegin "//"
 
     //插入符号表
     top->install(yytext,se);
-
     return ID;
 }
 
@@ -324,6 +324,66 @@ linecommentbegin "//"
 
     //插入符号表
     top->install(yytext,se);
+    
+    return ID;
+}
+
+"putch" {
+     if(dump_tokens)
+        DEBUG_FOR_LAB4(yytext);
+    char *lexeme;
+    lexeme = new char[strlen(yytext) + 1];
+    strcpy(lexeme, yytext);
+    yylval.strtype = lexeme;
+
+   
+    //获取全局符号表
+    SymbolTable* top=identifiers;
+    while(top->getPrev()){
+        top=top->getPrev();
+    }
+
+    //设置void putch(int)的类型
+    Type *funcType;
+    vector<type> vtp;
+    type t(TypeSystem::intType,false);
+    vtp.push_back(t);
+    
+    funcType = new FunctionType(TypeSystem::voidType,vtp);
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+
+    //插入符号表
+    top->install(yytext,se);
+    
+
+    return ID;
+}
+
+"getch" {
+     if(dump_tokens)
+        DEBUG_FOR_LAB4(yytext);
+    char *lexeme;
+    lexeme = new char[strlen(yytext) + 1];
+    strcpy(lexeme, yytext);
+    yylval.strtype = lexeme;
+
+   
+    //获取全局符号表
+    SymbolTable* top=identifiers;
+    while(top->getPrev()){
+        top=top->getPrev();
+    }
+
+    //设置int getch()的类型
+    Type *funcType;
+    vector<type> vtp;
+    
+    funcType = new FunctionType(TypeSystem::intType,vtp);
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+
+    //插入符号表
+    top->install(yytext,se);
+    
 
     return ID;
 }

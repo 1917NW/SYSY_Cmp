@@ -133,6 +133,7 @@ public:
     SymbolEntry* lookup(std::string name);
     SymbolTable* getPrev() {return prev;};
     int getLevel() {return level;};
+    int getsize(){return symbolTable.size();}
     static int getLabel() {return counter++;};
 };
 
