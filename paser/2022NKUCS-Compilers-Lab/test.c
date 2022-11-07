@@ -5,7 +5,5 @@ int add(int a,int b){
 
 int main(){
     int a=3;
-    int b=4;
-    add(a+b,4);
-    a+b;
+    printf("%d",a);
 }

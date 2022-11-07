@@ -25,9 +25,10 @@ void CallExpr::output(int level){
     type=symbolEntry->getType()->toStr();
     fprintf(yyout, "%*cCallExpr \t function: %s %s\n", level, ' ',name.c_str(),type.c_str());
     //输出表达式
-    
+    if(epl!=nullptr){
     for(int i=0;i<(int)epl->size();i++){
         (*epl)[i]->output(level+4);
+    }
     }
 }
 
@@ -133,9 +134,9 @@ void CompoundStmt::output(int level)
 
 void SeqNode::output(int level)
 {
-    fprintf(yyout, "%*cSequence\n", level, ' ');
-    stmt1->output(level + 4);
-    stmt2->output(level + 4);
+    // fprintf(yyout, "%*cSequence\n", level, ' ');
+    stmt1->output(level );
+    stmt2->output(level);
 }
 void VarDef_entry::output(int level){
     fprintf(yyout, "%*cVarDef\n", level, ' ');
@@ -205,7 +206,7 @@ void FunctionDef::output(int level)
   
     type = se->getType()->toStr();
 
-    fprintf(yyout, "%*cFunctionDefine function name: %s, type: %s\n", level, ' ', 
+    fprintf(yyout, "%*cFunctionDefine function name: %s type: %s\n", level, ' ', 
             name.c_str(), type.c_str());
     if(functionParams!=nullptr){
         for(auto i:*functionParams)

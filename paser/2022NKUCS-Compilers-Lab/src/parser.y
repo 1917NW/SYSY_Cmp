@@ -24,6 +24,7 @@
     StmtNode* stmttype;
     ExprNode* exprtype;
     Type* type;
+    
     VarDef_entry* vde;
     vector<VarDef_entry> * vvde;
 
@@ -150,6 +151,7 @@ Cond
 ExpList:
     Exp {$$=new vector<ExprNode*>();$$->push_back($1);}
     |ExpList COMMA Exp {$$=$1;$$->push_back($3);}
+    |%empty {$$=nullptr;}
 
 CallExp:
     ID LPAREN ExpList RPAREN{
@@ -412,6 +414,7 @@ FuncDef
 
         
         //函数语句节点
+        //FunctionDef包含函数原型se,$5函数形参列表，$7语句块
         $$ = new FunctionDef(se, $7,$5);
 
         //删除符号表链中第二个符号表

@@ -1,7 +1,11 @@
-
-const int c=3;
-int main(){
-    return c;
+//test addc
+int add(int a,int c){
+    return a+c;
 }
-
-
+const int a = 10;
+int main(){
+    
+    int c=getint();
+    putint(a);
+    return a + 5;
+}
