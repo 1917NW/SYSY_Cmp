@@ -61,6 +61,7 @@ Program
         ast.setRoot($1);
     }
     ;
+    
 Stmts
     : Stmt {$$=$1;}
     | Stmts Stmt{
@@ -143,6 +144,7 @@ WhileStmt
 NullStmt: SEMICOLON {
         $$ = new NullStmt();
 }
+
 
 //返回语句
 ReturnStmt

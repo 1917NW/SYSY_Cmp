@@ -1,4 +1,4 @@
-int maxArea(int height[], int n) {
+/*int maxArea(int height[], int n) {
     int i;
     int j;
     i = 0;
@@ -30,4 +30,7 @@ int main(){
     res = 10;
     res = maxArea(a, res);
     return res;
+}*/
+int main(){
+    
 }
