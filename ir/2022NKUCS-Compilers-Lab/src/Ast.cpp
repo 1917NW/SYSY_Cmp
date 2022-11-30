@@ -198,6 +198,10 @@ void BinaryExpr::genCode()
     }
 }
 
+void UnaryExpr::genCode(){
+    expr->genCode();
+}
+
 void Constant::genCode()
 {
     // we don't need to generate code.
@@ -233,7 +237,9 @@ void IfStmt::genCode()
 
     builder->setInsertBB(end_bb);
 }
+void NullStmt::genCode(){
 
+}
 void IfElseStmt::genCode()
 {
     // Todo
@@ -345,6 +351,10 @@ void AssignStmt::genCode()
     new StoreInstruction(addr, src, bb);
 }
 
+void ExprStmt::genCode(){
+    ep->genCode();
+}
+
 
 //对程序流图进行类型检查
 void Ast::typeCheck()
@@ -353,6 +363,7 @@ void Ast::typeCheck()
         root->typeCheck();
 }
 
+
 void FunctionDef::typeCheck()
 {
     // Todo
@@ -360,6 +371,10 @@ void FunctionDef::typeCheck()
 
 void BinaryExpr::typeCheck()
 {
+    // Todo
+}
+
+void UnaryExpr::typeCheck(){
     // Todo
 }
 
@@ -381,6 +396,10 @@ void IfStmt::typeCheck()
 void IfElseStmt::typeCheck()
 {
     // Todo
+}
+
+void NullStmt::typeCheck(){
+
 }
 
 void CompoundStmt::typeCheck()
@@ -407,7 +426,9 @@ void AssignStmt::typeCheck()
 {
     // Todo
 }
+void ExprStmt::typeCheck(){
 
+}
 
 //语法树的输出
 void BinaryExpr::output(int level)
@@ -451,6 +472,23 @@ void BinaryExpr::output(int level)
     expr2->output(level + 4);
 }
 
+void UnaryExpr::output(int level){
+      std::string op_str;
+      switch(op){
+        case ADD:
+            op_str='+';
+            break;
+        case SUB:
+            op_str='-';
+            break;
+        case NOT:
+            op_str="!";
+            break;
+      }
+      fprintf(yyout, "%*cUnaryExpr\tprefix: %s\n", level, ' ', op_str.c_str());
+      expr->output(level+4);
+}
+
 void Ast::output()
 {
     fprintf(yyout, "program\n");
@@ -492,6 +530,11 @@ void DeclStmt::output(int level)
     
 }
 
+void ExprStmt::output(int level){
+    fprintf(yyout, "%*cExprStmt\n", level, ' ');
+    ep->output(level+4);
+}
+
 void Constant::output(int level)
 {
     std::string type, value;
@@ -515,7 +558,9 @@ void SeqNode::output(int level)
     stmt2->output(level);
 }
 
-
+void NullStmt::output(int level){
+     fprintf(yyout, "%*cNullStmt\n", level, ' ');
+}
 
 void IfStmt::output(int level)
 {

@@ -115,7 +115,9 @@ WHITE [\t ]
     return GREATER;
 };
 
-
+"!" {
+    return NOT;
+}
 
 "+" {
     if(dump_tokens)

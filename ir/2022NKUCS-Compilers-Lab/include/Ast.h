@@ -59,7 +59,18 @@ public:
     void genCode();
 };
 
-
+class UnaryExpr:public ExprNode
+{
+private:
+    int op;
+    ExprNode * expr;
+public:
+    enum{ADD,SUB,NOT};
+    UnaryExpr(SymbolEntry* se,int op,ExprNode* expr):ExprNode(se),op(op),expr(expr){};
+    void output(int level);
+    void genCode();
+    void typeCheck();
+};
 
 
 class Constant : public ExprNode
@@ -106,6 +117,15 @@ public:
     void genCode();
 };
 
+class NullStmt:public StmtNode
+{
+    public:
+    NullStmt(){};
+    void output(int level);
+    void typeCheck();
+    void genCode();
+};
+
 class VarDef_entry{
 public:
     Id* id;
@@ -125,7 +145,15 @@ public:
     void genCode();
 };
 
-
+class ExprStmt : public StmtNode{
+private:
+    ExprNode* ep;
+public:
+    ExprStmt(ExprNode* ep):ep(ep){};
+    void output(int level);
+    void typeCheck();
+    void genCode();
+};
 class IfStmt : public StmtNode
 {
 private:
