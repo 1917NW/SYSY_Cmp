@@ -150,7 +150,7 @@ void BinaryExpr::genCode()
         false_list.push_back(new UncondBrInstruction(falsebb, tempbb));
     }
     //算术运算表达式
-    else if(op >= ADD && op <= SUB)
+    else if(op >= ADD && op <= MOD)
     {
         expr1->genCode();
         expr2->genCode();
@@ -164,6 +164,15 @@ void BinaryExpr::genCode()
             break;
         case SUB:
             opcode = BinaryInstruction::SUB;
+            break;
+        case MUL:
+            opcode = BinaryInstruction::MUL;
+            break;
+        case DIV:
+            opcode=BinaryInstruction::DIV;
+            break;
+        case MOD:
+            opcode=BinaryInstruction::MOD;
             break;
         }
         new BinaryInstruction(opcode, dst, src1, src2, bb);

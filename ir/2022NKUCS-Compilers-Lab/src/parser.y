@@ -35,11 +35,11 @@
 %token IF ELSE
 %token INT VOID CONST
 %token LPAREN RPAREN LBRACE RBRACE SEMICOLON COMMA
-%token ADD SUB OR AND LESS ASSIGN 
+%token ADD SUB MUL DIV MOD OR AND LESS ASSIGN 
 %token RETURN
 
 %nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef
-%nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp
+%nterm <exprtype> Exp AddExp MulExp Cond LOrExp PrimaryExp LVal RelExp LAndExp
 %nterm <type> Type
 
 %nterm <vde> VarDef ConstDef
@@ -130,9 +130,31 @@ PrimaryExp
         $$ = new Constant(se);
     }
     ;
+
+MulExp:
+     PrimaryExp {$$ = $1;}
+     |
+     MulExp MUL PrimaryExp
+     {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::MUL, $1, $3);
+     }
+     |
+     MulExp DIV PrimaryExp
+     {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::DIV, $1, $3);
+     }
+     |
+     MulExp MOD PrimaryExp
+     {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::MOD, $1, $3);
+     }
+
 AddExp
     :
-    PrimaryExp {$$ = $1;}
+    MulExp {$$ = $1;}
     |
     AddExp ADD PrimaryExp
     {
