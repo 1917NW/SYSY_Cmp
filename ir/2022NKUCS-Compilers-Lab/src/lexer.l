@@ -41,6 +41,12 @@ WHITE [\t ]
         DEBUG_FOR_LAB4("VOID\tvoid");
     return VOID;
 }
+
+"const" {
+    return CONST;
+
+}
+
 "if" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("IF\tif");

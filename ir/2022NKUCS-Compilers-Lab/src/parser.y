@@ -6,6 +6,7 @@
     using namespace std;
     extern Ast ast;
     Type* Var_type;
+    bool isConst=false;
     int yylex();
     int yyerror( char const * );
 }
@@ -32,7 +33,7 @@
 %token <strtype> ID 
 %token <itype> INTEGER
 %token IF ELSE
-%token INT VOID
+%token INT VOID CONST
 %token LPAREN RPAREN LBRACE RBRACE SEMICOLON COMMA
 %token ADD SUB OR AND LESS ASSIGN 
 %token RETURN
@@ -41,8 +42,8 @@
 %nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp
 %nterm <type> Type
 
-%nterm <vde> VarDef 
-%nterm <vvde> VarDefList 
+%nterm <vde> VarDef ConstDef
+%nterm <vvde> VarDefList ConstDefList
 
 %precedence THEN
 %precedence ELSE
@@ -177,8 +178,15 @@ LOrExp
     ;
 Type
     : INT {
+          if(!isConst){
         $$ = TypeSystem::intType;
         Var_type=TypeSystem::intType;
+        }
+        else{
+        $$ = TypeSystem::constIntType;
+        Var_type=TypeSystem::constIntType;
+        isConst=false;
+        }
     }
     | VOID {
         $$ = TypeSystem::voidType;
@@ -208,11 +216,37 @@ VarDefList
     : VarDefList COMMA VarDef{$$=$1;$$->push_back(*($3));delete $3;}
     | VarDef {$$=new vector<VarDef_entry>();$$->push_back(*($1));}
 
+//常量定义
+ConstDef
+    :ID ASSIGN Exp {
+        SymbolEntry *se;
+        se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel());
+        identifiers->install($1, se);
+        $$=new VarDef_entry(new Id(se),$3);
+        delete []$1;
+    }
+    ;
+
+//常量定义列表
+ConstDefList
+    : ConstDef {
+        $$=new vector<VarDef_entry>();$$->push_back(*($1));
+        }
+    | ConstDefList COMMA ConstDef {
+        $$=$1;$$->push_back(*($3));
+    }
+    ;   
 DeclStmt
     :
     Type VarDefList SEMICOLON {
          $$ = new DeclStmt($2);
     }
+    ;
+    |
+    CONST {isConst=true;} Type ConstDefList SEMICOLON {
+        $$ = new DeclStmt($4);
+    }
+
     ;
 
 FuncDef

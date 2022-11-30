@@ -1,13 +1,15 @@
 #include "Type.h"
 #include <sstream>
 
-IntType TypeSystem::commonInt = IntType(32);
-IntType TypeSystem::commonBool = IntType(1);
-VoidType TypeSystem::commonVoid = VoidType();
+IntType TypeSystem::commonInt = IntType(32,false);
+IntType TypeSystem::constInt=IntType(32,true);
+IntType TypeSystem::commonBool = IntType(1,false);
+VoidType TypeSystem::commonVoid = VoidType(false);
 
 Type* TypeSystem::intType = &commonInt;
 Type* TypeSystem::voidType = &commonVoid;
 Type* TypeSystem::boolType = &commonBool;
+Type* TypeSystem::constIntType=&constInt;
 
 std::string IntType::toStr()
 {
