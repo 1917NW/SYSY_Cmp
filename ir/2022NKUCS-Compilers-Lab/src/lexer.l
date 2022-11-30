@@ -69,16 +69,54 @@ WHITE [\t ]
     return AND;
 }
 
+"||" {
+    return OR;
+}
+
+"==" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("EQ\t==");
+    return EQ;
+};
+
+">=" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("GOE\t>=");
+    return GOE;
+};
+
+"<=" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("LOE\t<=");
+    return LOE;
+};
+
+"!=" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("NE\t!=");
+    return NE;
+};
+
 "=" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("ASSIGN\t=");
     return ASSIGN;
 }
+
 "<" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("LESS\t<");
     return LESS;
 }
+
+">" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("MORE\t<");
+    return GREATER;
+};
+
+
+
 "+" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("ADD\t+");

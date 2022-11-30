@@ -35,11 +35,11 @@
 %token IF ELSE
 %token INT VOID CONST
 %token LPAREN RPAREN LBRACE RBRACE SEMICOLON COMMA
-%token ADD SUB MUL DIV MOD OR AND LESS ASSIGN 
+%token ADD SUB MUL DIV MOD OR AND LESS ASSIGN EQ NE LOE GOE GREATER 
 %token RETURN
 
 %nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef
-%nterm <exprtype> Exp AddExp MulExp Cond LOrExp PrimaryExp LVal RelExp LAndExp
+%nterm <exprtype> Exp AddExp MulExp Cond LOrExp PrimaryExp LVal RelExp LAndExp EqExp
 %nterm <type> Type
 
 %nterm <vde> VarDef ConstDef
@@ -168,6 +168,7 @@ AddExp
         $$ = new BinaryExpr(se, BinaryExpr::SUB, $1, $3);
     }
     ;
+
 RelExp
     :
     AddExp {$$ = $1;}
@@ -177,17 +178,48 @@ RelExp
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::boolType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::LESS, $1, $3);
     }
+    |
+     RelExp GREATER AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::GREATER, $1, $3);
+    }
+    |
+    RelExp LOE AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::LOE, $1, $3);
+    }
+    |
+    RelExp GOE AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::GOE, $1, $3);
+    }
     ;
+
+EqExp:
+    RelExp {$$ = $1;}
+    |EqExp EQ RelExp {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::EQ, $1, $3);
+    }
+    |EqExp NE RelExp {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::NE, $1, $3);
+    } ;
+
 LAndExp
     :
-    RelExp {$$ = $1;}
+    EqExp {$$ = $1;}
     |
-    LAndExp AND RelExp
+    LAndExp AND EqExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::boolType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::AND, $1, $3);
     }
     ;
+
 LOrExp
     :
     LAndExp {$$ = $1;}

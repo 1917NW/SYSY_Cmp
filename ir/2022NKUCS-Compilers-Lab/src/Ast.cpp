@@ -115,9 +115,16 @@ void BinaryExpr::genCode()
     else if(op == OR)
     {
         // Todo
+         BasicBlock *falseBB = new BasicBlock(func);
+         expr1->genCode();
+         backPatch(expr1->falseList(), falseBB);
+         builder->setInsertBB(falseBB);   
+          expr2->genCode();
+          false_list=expr2->falseList();
+          true_list=merge(expr1->trueList(),expr2->trueList());
     }
     //关系运算表达式
-    else if(op >= LESS && op <= GREATER)
+    else if(op >= LESS && op <= GOE)
     {
         // Todo
         expr1->genCode();
@@ -133,6 +140,18 @@ void BinaryExpr::genCode()
         
         case GREATER:
             cmpopcode=CmpInstruction::G;
+            break;
+        case LOE:
+            cmpopcode=CmpInstruction::LE;
+            break;
+        case GOE:
+            cmpopcode=CmpInstruction::GE;
+            break;
+        case EQ:
+            cmpopcode=CmpInstruction::E;
+            break;
+        case NE:
+            cmpopcode=CmpInstruction::NE;
             break;
         }
         new CmpInstruction(cmpopcode, dst, src1, src2, bb);
@@ -397,19 +416,34 @@ void BinaryExpr::output(int level)
     switch(op)
     {
         case ADD:
-            op_str = "add";
+            op_str = "+";
             break;
         case SUB:
-            op_str = "sub";
+            op_str = "-";
             break;
         case AND:
-            op_str = "and";
+            op_str = "&&";
             break;
         case OR:
-            op_str = "or";
+            op_str = "||";
             break;
         case LESS:
-            op_str = "less";
+            op_str = "<";
+            break;
+        case EQ:
+            op_str="==";
+            break;
+        case NE:
+            op_str="!=";
+            break;
+        case GREATER:
+            op_str=">";
+            break;
+        case GOE:
+            op_str=">=";
+            break;
+        case LOE:
+            op_str="<=";
             break;
     }
     fprintf(yyout, "%*cBinaryExpr\top: %s\n", level, ' ', op_str.c_str());
