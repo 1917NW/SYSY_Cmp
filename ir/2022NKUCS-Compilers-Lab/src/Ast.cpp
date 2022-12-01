@@ -258,6 +258,11 @@ void IfStmt::genCode()
 void NullStmt::genCode(){
 
 }
+
+void WhileStmt::genCode(){
+
+}
+
 void IfElseStmt::genCode()
 {
     // Todo
@@ -413,6 +418,10 @@ void IfStmt::typeCheck()
 
 void IfElseStmt::typeCheck()
 {
+    // Todo
+}
+
+void WhileStmt::typeCheck(){
     // Todo
 }
 
@@ -625,4 +634,10 @@ void FunctionDef::output(int level)
     fprintf(yyout, "%*cFunctionDefine function name: %s, type: %s\n", level, ' ', 
             name.c_str(), type.c_str());
     stmt->output(level + 4);
+}
+
+void WhileStmt::output(int level){
+     fprintf(yyout, "%*cWhileStmt\n", level, ' ');
+     cond->output(level+4);
+     stmt->output(level+4);
 }

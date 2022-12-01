@@ -32,13 +32,13 @@
 %start Program
 %token <strtype> ID 
 %token <itype> INTEGER
-%token IF ELSE
+%token IF ELSE WHILE
 %token INT VOID CONST
 %token LPAREN RPAREN LBRACE RBRACE SEMICOLON COMMA
 %token ADD SUB MUL DIV MOD OR AND LESS ASSIGN EQ NE LOE GOE GREATER NOT
 %token RETURN
 
-%nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef NullStmt ExprStmt
+%nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef NullStmt ExprStmt WhileStmt
 %nterm <exprtype> Exp AddExp MulExp Cond LOrExp PrimaryExp LVal RelExp LAndExp EqExp UnaryExp
 %nterm <type> Type
 
@@ -68,6 +68,7 @@ Stmt
     | FuncDef {$$=$1;}
     | NullStmt {$$=$1;}
     | ExprStmt {$$=$1;}
+    | WhileStmt {$$=$1;}
     ;
 LVal
     : ID {
@@ -118,6 +119,12 @@ IfStmt
         $$ = new IfElseStmt($3, $5, $7);
     }
     ;
+
+WhileStmt
+    : WHILE LPAREN Cond RPAREN Stmt {
+        $$ = new WhileStmt($3,$5);
+    }
+
 ReturnStmt
     :
     RETURN Exp SEMICOLON{

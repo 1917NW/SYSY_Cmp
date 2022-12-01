@@ -118,6 +118,20 @@ public:
     void genCode();
 };
 
+class WhileStmt:public StmtNode
+{
+    private:
+        ExprNode *cond;
+        StmtNode* stmt;
+        BasicBlock* cond_bb;
+        BasicBlock* end_bb;
+    public:
+        WhileStmt(ExprNode *cond, StmtNode* stmt):cond(cond),stmt(stmt){};
+        void output(int level);
+        void typeCheck();
+        void genCode();
+};
+
 class NullStmt:public StmtNode
 {
     public:

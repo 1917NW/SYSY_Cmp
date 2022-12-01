@@ -19,11 +19,21 @@
 %}
 
 DECIMIAL ([1-9][0-9]*|0)
+OCTONARY 0([0-7]*)
+HEXADECIMIAL (0x|0X)([0-9A-Fa-f]*)
 ID [[:alpha:]_][[:alpha:][:digit:]_]*
 EOL (\r\n|\n|\r)
 WHITE [\t ]
-%x BLOCKCOMMENT
 
+blockcommentelement  .|\n
+blockcommentend "*/"
+blockcommentbegin \/\*
+
+linecommentelement .
+linecommentend \n
+linecommentbegin "//"
+%x BLOCKCOMMENT
+%x LINECOMMENT
 %%
 
 "int" {
@@ -57,6 +67,13 @@ WHITE [\t ]
         DEBUG_FOR_LAB4("ELSE\telse");
     return ELSE;
 };
+
+"while" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("WHILE\twhile");
+    return WHILE;
+};
+
 "return" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("RETURN\treturn");
@@ -188,7 +205,19 @@ WHITE [\t ]
     yylval.itype = atoi(yytext);
     return INTEGER;
 }
+{HEXADECIMIAL} {
+    int num;
+    sscanf(yytext, "%x", &num);
+    yylval.itype=num;
+    return INTEGER;
+}
 
+{OCTONARY} {
+    int num;
+    sscanf(yytext, "%o", &num);
+    yylval.itype=num;
+    return INTEGER;
+}
 {ID} {
     if(dump_tokens)
         DEBUG_FOR_LAB4(yytext);
@@ -200,4 +229,13 @@ WHITE [\t ]
 }
 {EOL} yylineno++;
 {WHITE}
+
+{blockcommentbegin} {BEGIN BLOCKCOMMENT;}
+
+<BLOCKCOMMENT>{blockcommentelement} {}
+<BLOCKCOMMENT>{blockcommentend} {BEGIN INITIAL;}
+
+{linecommentbegin} {BEGIN LINECOMMENT;}
+<LINECOMMENT>{linecommentelement} {}
+<LINECOMMENT>{linecommentend} {BEGIN INITIAL;}
 %%
