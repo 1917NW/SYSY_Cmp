@@ -126,7 +126,7 @@ ReturnStmt
     ;
 Exp
     :
-    AddExp {$$ = $1;}
+    LOrExp {$$ = $1;}
     ;
 Cond
     :

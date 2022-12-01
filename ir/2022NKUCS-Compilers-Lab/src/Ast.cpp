@@ -210,13 +210,12 @@ void UnaryExpr::genCode(){
                 new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)),
                 bb);
             src = temp;
-            dst = new Operand(this->getSymPtr());
             new XorInstruction(dst, src, bb);
     } else if (op == SUB) {
         Operand* src2;
         BasicBlock* bb = builder->getInsertBB();
         Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
-         src2 = expr->getOperand();
+        src2 = expr->getOperand();
         new BinaryInstruction(BinaryInstruction::SUB, dst, src1, src2, bb);
     }
 }
