@@ -119,9 +119,9 @@ void BinaryExpr::genCode()
          expr1->genCode();
          backPatch(expr1->falseList(), falseBB);
          builder->setInsertBB(falseBB);   
-          expr2->genCode();
-          false_list=expr2->falseList();
-          true_list=merge(expr1->trueList(),expr2->trueList());
+         expr2->genCode();
+         false_list=expr2->falseList();
+         true_list=merge(expr1->trueList(),expr2->trueList());
     }
     //关系运算表达式
     else if(op >= LESS && op <= GOE)
@@ -200,6 +200,25 @@ void BinaryExpr::genCode()
 
 void UnaryExpr::genCode(){
     expr->genCode();
+    if (op == NOT) {
+        BasicBlock* bb = builder->getInsertBB();
+        Operand* src = expr->getOperand();
+            Operand* temp = new Operand(new TemporarySymbolEntry(
+                TypeSystem::boolType, SymbolTable::getLabel()));
+            new CmpInstruction(
+                CmpInstruction::NE, temp, src,
+                new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)),
+                bb);
+            src = temp;
+            dst = new Operand(this->getSymPtr());
+            new XorInstruction(dst, src, bb);
+    } else if (op == SUB) {
+        Operand* src2;
+        BasicBlock* bb = builder->getInsertBB();
+        Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
+         src2 = expr->getOperand();
+        new BinaryInstruction(BinaryInstruction::SUB, dst, src1, src2, bb);
+    }
 }
 
 void Constant::genCode()
@@ -441,6 +460,15 @@ void BinaryExpr::output(int level)
             break;
         case SUB:
             op_str = "-";
+            break;
+        case MUL:
+            op_str = "*";
+            break;
+        case DIV:
+            op_str="/";
+            break;
+        case MOD:
+            op_str="%";
             break;
         case AND:
             op_str = "&&";

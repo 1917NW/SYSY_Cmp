@@ -350,10 +350,14 @@ XorInstruction::XorInstruction(Operand* dst,
                                Operand* src,
                                BasicBlock* insert_bb)
     : Instruction(XOR, insert_bb) {
+       
     operands.push_back(dst);
+    
     operands.push_back(src);
+    
     dst->setDef(this);
     src->addUse(this);
+    
 }
 
 XorInstruction::~XorInstruction() {
