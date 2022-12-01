@@ -28,7 +28,7 @@ protected:
     Instruction *next;
     BasicBlock *parent;
     std::vector<Operand*> operands;
-    enum {BINARY, COND, UNCOND, RET, LOAD, STORE, CMP, ALLOCA};
+    enum {BINARY, COND, UNCOND, RET, LOAD, STORE, CMP, ALLOCA,ZEXT,XOR,GEP,PHI,BITCAST,SHL,ASHR,CALL};
 };
 
 // meaningless instruction, used as the head node of the instruction list.
@@ -119,4 +119,19 @@ public:
     void output() const;
 };
 
+class ZextInstruction : public Instruction {
+   public:
+    ZextInstruction(Operand* dst,
+                    Operand* src,
+                    BasicBlock* insert_bb = nullptr);
+    ~ZextInstruction();
+    void output() const;
+};
+
+class XorInstruction : public Instruction {
+   public:
+    XorInstruction(Operand* dst, Operand* src, BasicBlock* insert_bb = nullptr);
+    ~XorInstruction();
+    void output() const;
+};
 #endif
