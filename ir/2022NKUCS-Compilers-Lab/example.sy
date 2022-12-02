@@ -4,7 +4,9 @@ int a=1,b=4,c;
 
 int main()
 {
-    
+    int d;
+    while(a<b)
+        return 0;
     a = 1 % 2;
     return 0;
 }

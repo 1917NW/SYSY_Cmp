@@ -156,17 +156,7 @@ void BinaryExpr::genCode()
         }
         new CmpInstruction(cmpopcode, dst, src1, src2, bb);
         //
-        BasicBlock *truebb, *falsebb, *tempbb;
-        //临时假块
-        truebb = new BasicBlock(func);
-        falsebb = new BasicBlock(func);
-        tempbb = new BasicBlock(func);
-
-        //在当前块中设置正确跳转为truebb,错误跳转为tempbb
-        true_list.push_back(new CondBrInstruction(truebb, tempbb, dst, bb));
-
-        //在tempbb中设置跳转块为falsebb
-        false_list.push_back(new UncondBrInstruction(falsebb, tempbb));
+       
     }
     //算术运算表达式
     else if(op >= ADD && op <= MOD)
@@ -242,6 +232,18 @@ void IfStmt::genCode()
     end_bb = new BasicBlock(func);
 
     cond->genCode();
+    
+     BasicBlock *truebb, *falsebb, *tempbb;
+    //临时假块
+    truebb = new BasicBlock(func);
+    falsebb = new BasicBlock(func);
+    tempbb = new BasicBlock(func);
+
+        //在当前块中设置正确跳转为truebb,错误跳转为tempbb
+    cond->trueList().push_back(new CondBrInstruction(truebb, tempbb, cond->dst, bb));
+    //在tempbb中设置跳转块为falsebb
+    cond->falseList().push_back(new UncondBrInstruction(falsebb, tempbb));
+
     backPatch(cond->trueList(), then_bb);
     backPatch(cond->falseList(), end_bb);
 
@@ -260,7 +262,28 @@ void NullStmt::genCode(){
 }
 
 void WhileStmt::genCode(){
+   Function* func;
+   BasicBlock* bb,*cond_bb,*stmt_bb,*end_bb;
 
+   func = builder->getInsertBB()->getParent();
+   cond_bb=new BasicBlock(func);
+   stmt_bb=new BasicBlock(func);
+   end_bb=new BasicBlock(func);
+
+   bb = builder->getInsertBB();
+   new UncondBrInstruction(cond_bb,bb);
+
+   builder->setInsertBB(cond_bb);
+   cond->genCode();
+   backPatch(cond->trueList(),stmt_bb);
+   backPatch(cond->falseList(),end_bb);
+
+   builder->setInsertBB(stmt_bb);
+   stmt->genCode();
+   stmt_bb=builder->getInsertBB();
+   new UncondBrInstruction(cond_bb,stmt_bb);
+
+   builder->setInsertBB(end_bb);
 }
 
 void IfElseStmt::genCode()
