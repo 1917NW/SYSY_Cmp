@@ -156,6 +156,17 @@ void BinaryExpr::genCode()
         }
         new CmpInstruction(cmpopcode, dst, src1, src2, bb);
         //
+        
+     BasicBlock *truebb, *falsebb, *tempbb;
+    //临时假块
+    truebb = new BasicBlock(func);
+    falsebb = new BasicBlock(func);
+    tempbb = new BasicBlock(func);
+
+        //在当前块中设置正确跳转为truebb,错误跳转为tempbb
+    true_list.push_back(new CondBrInstruction(truebb, tempbb, dst, bb));
+    //在tempbb中设置跳转块为falsebb
+    false_list.push_back(new UncondBrInstruction(falsebb, tempbb));
        
     }
     //算术运算表达式
@@ -233,16 +244,6 @@ void IfStmt::genCode()
 
     cond->genCode();
     
-     BasicBlock *truebb, *falsebb, *tempbb;
-    //临时假块
-    truebb = new BasicBlock(func);
-    falsebb = new BasicBlock(func);
-    tempbb = new BasicBlock(func);
-
-        //在当前块中设置正确跳转为truebb,错误跳转为tempbb
-    cond->trueList().push_back(new CondBrInstruction(truebb, tempbb, cond->dst, bb));
-    //在tempbb中设置跳转块为falsebb
-    cond->falseList().push_back(new UncondBrInstruction(falsebb, tempbb));
 
     backPatch(cond->trueList(), then_bb);
     backPatch(cond->falseList(), end_bb);
