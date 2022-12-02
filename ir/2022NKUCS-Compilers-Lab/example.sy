@@ -12,7 +12,7 @@ int max(int a,int b){
 int main()
 {
     a>b;
-    int d;
+    int d=(a+b)*3;
     int c;
     while(!b && a>b)
         return 0;

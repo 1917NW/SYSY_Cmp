@@ -155,6 +155,10 @@ PrimaryExp
         SymbolEntry *se = new ConstantSymbolEntry(TypeSystem::intType, $1);
         $$ = new Constant(se);
     }
+    |LPAREN Exp RPAREN
+    {
+        $$ = $2;
+    }
     ;
 
 UnaryExp
