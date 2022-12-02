@@ -273,9 +273,13 @@ void AllocaInstruction::output() const
 LoadInstruction::LoadInstruction(Operand *dst, Operand *src_addr, BasicBlock *insert_bb) : Instruction(LOAD, insert_bb)
 {
     operands.push_back(dst);
+    
     operands.push_back(src_addr);
+
     dst->setDef(this);
     src_addr->addUse(this);
+    
+     
 }
 
 LoadInstruction::~LoadInstruction()

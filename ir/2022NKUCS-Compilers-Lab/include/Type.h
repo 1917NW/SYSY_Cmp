@@ -45,6 +45,7 @@ public:
     Type(Type::FUNC), returnType(returnType), paramsType(paramsType){};
     Type* getRetType() {return returnType;};
     std::string toStr();
+    std::vector<Type*>* GetParamsType(){return &paramsType;};
 };
 
 class PointerType : public Type

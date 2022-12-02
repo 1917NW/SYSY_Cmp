@@ -216,17 +216,27 @@ public:
     void genCode();
 };
 
+class FunctionParam{
+    
+public:
+    Id *id;
+    FunctionParam(Id* id):id(id){};
+    void output(int level);
+};
+
 class FunctionDef : public StmtNode
 {
 private:
     SymbolEntry *se;
+    vector<FunctionParam>* functionParams;
     StmtNode *stmt;
 public:
-    FunctionDef(SymbolEntry *se, StmtNode *stmt) : se(se), stmt(stmt){};
+    FunctionDef(SymbolEntry *se, StmtNode *stmt,vector<FunctionParam>* functionParams) : se(se), functionParams(functionParams),stmt(stmt){};
     void output(int level);
     void typeCheck();
     void genCode();
 };
+
 
 class Ast
 {

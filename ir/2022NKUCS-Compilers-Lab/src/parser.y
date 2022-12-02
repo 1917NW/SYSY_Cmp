@@ -7,6 +7,7 @@
     extern Ast ast;
     Type* Var_type;
     bool isConst=false;
+    vector<Type*>* NowFuncParamsType;
     int yylex();
     int yyerror( char const * );
 }
@@ -27,6 +28,9 @@
     //支持多变量声明和定义
     VarDef_entry* vde;
     std::vector<VarDef_entry> * vvde;
+
+    FunctionParam* fpa;
+    vector<FunctionParam> * vfpa;
 }
 
 %start Program
@@ -44,6 +48,9 @@
 
 %nterm <vde> VarDef ConstDef
 %nterm <vvde> VarDefList ConstDefList
+
+%nterm <fpa> FuncFParam
+%nterm <vfpa> FuncFParams
 
 %precedence THEN
 %precedence ELSE
@@ -339,22 +346,72 @@ DeclStmt
 
     ;
 
+//函数形参
+FuncFParam:
+    Type ID{
+        //ToDo
+       
+        SymbolEntry *se;
+        se=new IdentifierSymbolEntry(Var_type,$2,identifiers->getLevel());
+
+        //把函数形参名放入到符号表链的第二个符号表中
+        identifiers->install($2,se);
+
+        //向形参列表中加入形参的类型
+        NowFuncParamsType->push_back($1);
+        $$=new FunctionParam(new Id(se));
+        delete []$2;
+    }
+    |CONST {isConst=true;}
+    Type ID{
+        SymbolEntry *se;
+        se=new IdentifierSymbolEntry(Var_type,$4,identifiers->getLevel());
+        identifiers->install($4,se);
+        NowFuncParamsType->push_back($3);
+        $$=new FunctionParam(new Id(se));
+        delete []$4;
+    }
+    |%empty {$$=nullptr;}
+    ;
+    
+//函数形参列表
+FuncFParams
+    : FuncFParam {if($1!=nullptr){$$=new vector<FunctionParam>();$$->push_back(*($1));}else $$=nullptr;}
+    | FuncFParams COMMA FuncFParam {
+        $$=$1;$$->push_back(*($3));
+        delete $3;
+    }
+
+//函数定义
 FuncDef
     :
     Type ID {
         Type *funcType;
         funcType = new FunctionType($1,{});
+
+        //获取当前函数的形参列表
+        NowFuncParamsType=((FunctionType*)funcType)->GetParamsType();
         SymbolEntry *se = new IdentifierSymbolEntry(funcType, $2, identifiers->getLevel());
+
+        //把函数名放到符号表链的第一个符号表中
         identifiers->install($2, se);
+
+        //进入符号表链中的第二个符号表
         identifiers = new SymbolTable(identifiers);
     }
-    LPAREN RPAREN
+    LPAREN FuncFParams RPAREN
     BlockStmt
     {
         SymbolEntry *se;
         se = identifiers->lookup($2);
         assert(se != nullptr);
-        $$ = new FunctionDef(se, $6);
+
+        
+        //函数语句节点
+        //FunctionDef包含函数原型se,$5函数形参列表，$7语句块
+        $$ = new FunctionDef(se, $7,$5);
+
+        //删除符号表链中第二个符号表
         SymbolTable *top = identifiers;
         identifiers = identifiers->getPrev();
         delete top;

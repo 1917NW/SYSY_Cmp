@@ -49,10 +49,33 @@ void FunctionDef::genCode()
 {
     Unit *unit = builder->getUnit();
     Function *func = new Function(unit, se);
+
+    if(functionParams!=nullptr){
+    for(auto& i:(*functionParams)){
+       
+        IdentifierSymbolEntry* se =
+        dynamic_cast<IdentifierSymbolEntry*>(i.id->getSymPtr());
+        
+        BasicBlock *entry = func->getEntry();
+        Instruction *alloca;
+        Operand *addr;
+        SymbolEntry *addr_se;
+        Type *type;
+         
+        type = new PointerType(se->getType());
+        //用一个中间符号代替变量
+        addr_se = new TemporarySymbolEntry(type, SymbolTable::getLabel());
+        addr = new Operand(addr_se);
+        alloca = new AllocaInstruction(addr, se);                   // allocate space for local id in function stack.
+        entry->insertFront(alloca);                                 // allocate instructions should be inserted into the begin of the entry block.
+        se->setAddr(addr); 
+    }
+ }
+
     BasicBlock *entry = func->getEntry();
     // set the insert point to the entry basicblock of this function.
     builder->setInsertBB(entry);
-
+   
     //生成该函数所有的指令以及所有的块
     stmt->genCode();
 
@@ -143,6 +166,7 @@ void BinaryExpr::genCode()
         // Todo
         expr1->genCode();
         expr2->genCode();
+        
         Operand* src1 = expr1->getOperand();
         Operand* src2 = expr2->getOperand();
         int cmpopcode=-1;
@@ -170,17 +194,6 @@ void BinaryExpr::genCode()
         }
         new CmpInstruction(cmpopcode, dst, src1, src2, bb);
         //
-        
-    //  BasicBlock *truebb, *falsebb, *tempbb;
-    // //临时假块
-    // truebb = new BasicBlock(func);
-    // falsebb = new BasicBlock(func);
-    // tempbb = new BasicBlock(func);
-
-    //     //在当前块中设置正确跳转为truebb,错误跳转为tempbb
-    // true_list.push_back(new CondBrInstruction(truebb, tempbb, dst, bb));
-    // //在tempbb中设置跳转块为falsebb
-    // false_list.push_back(new UncondBrInstruction(falsebb, tempbb));
        
     }
     //算术运算表达式
@@ -242,9 +255,12 @@ void Constant::genCode()
 
 void Id::genCode()
 {
+    
     BasicBlock *bb = builder->getInsertBB();
+   
     Operand *addr = dynamic_cast<IdentifierSymbolEntry*>(symbolEntry)->getAddr();
     new LoadInstruction(dst, addr, bb);
+    
 }
 
 void IfStmt::genCode()
@@ -331,12 +347,15 @@ void IfElseStmt::genCode()
     end_bb = new BasicBlock(func);
 
     cond->genCode();
+    
     bb = builder->getInsertBB();
+    
      BasicBlock *truebb, *falsebb, *tempbb;
         //临时假块
      truebb = new BasicBlock(func);
      falsebb = new BasicBlock(func);
      tempbb = new BasicBlock(func);
+     
      cond->trueList().push_back(new CondBrInstruction(truebb, tempbb, cond->getOperand(), bb));
         //在tempbb中设置跳转块为falsebb
      cond->falseList().push_back(new UncondBrInstruction(falsebb, tempbb));
@@ -362,6 +381,7 @@ void CompoundStmt::genCode()
 {
     // Todo
     //llvm ir不以花括号划分块，而是以跳转指令来划分块，跳转指令是块的最后一条指令
+    
     if (stmt)
         stmt->genCode();
 }
@@ -690,18 +710,36 @@ void AssignStmt::output(int level)
     expr->output(level + 4);
 }
 
-void FunctionDef::output(int level)
-{
-    std::string name, type;
-    name = se->toStr();
-    type = se->getType()->toStr();
-    fprintf(yyout, "%*cFunctionDefine function name: %s, type: %s\n", level, ' ', 
-            name.c_str(), type.c_str());
-    stmt->output(level + 4);
-}
+
 
 void WhileStmt::output(int level){
      fprintf(yyout, "%*cWhileStmt\n", level, ' ');
      cond->output(level+4);
      stmt->output(level+4);
+}
+
+void FunctionParam::output(int level){
+    fprintf(yyout, "%*cParmVarDecl : \n", level, ' ');
+    id->output(level+4);
+}
+
+void FunctionDef::output(int level)
+{
+    
+    std::string name, type;
+    
+    name = se->toStr();
+    
+   
+    type = se->getType()->toStr();
+
+    fprintf(yyout, "%*cFunctionDefine function name: %s type: %s\n", level, ' ', 
+            name.c_str(), type.c_str());
+    if(functionParams!=nullptr){
+        for(auto i:*functionParams){
+            i.output(level+4);
+        }
+    }
+    stmt->output(level + 4);
+    
 }

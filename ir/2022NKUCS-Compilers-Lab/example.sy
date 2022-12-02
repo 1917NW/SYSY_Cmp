@@ -2,14 +2,21 @@
 
 int a=1,b=4,c;
 
+int max(int a,int b){
+    if(a>b)
+        return a;
+    else
+        return b;
+}
+
 int main()
 {
+    a>b;
     int d;
     int c;
-    if(!b)
+    while(!b && a>b)
         return 0;
-    else 
-        a=a+b;
+    
     a = 1 % 2;
     return 0;
 }
