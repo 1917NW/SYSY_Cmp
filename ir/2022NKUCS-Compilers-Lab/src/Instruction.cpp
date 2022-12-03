@@ -305,8 +305,12 @@ StoreInstruction::StoreInstruction(Operand *dst_addr, Operand *src, BasicBlock *
 {
     operands.push_back(dst_addr);
     operands.push_back(src);
+    
     dst_addr->addUse(this);
+    
     src->addUse(this);
+   
+    
 }
 
 StoreInstruction::~StoreInstruction()

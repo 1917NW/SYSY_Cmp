@@ -66,13 +66,23 @@ private:
     ExprNode * expr;
 public:
     enum{ADD,SUB,NOT};
-    UnaryExpr(SymbolEntry* se,int op,ExprNode* expr):ExprNode(se),op(op),expr(expr){dst = new Operand(se);std::cout<<3<<std::endl; };
+    UnaryExpr(SymbolEntry* se,int op,ExprNode* expr):ExprNode(se),op(op),expr(expr){dst = new Operand(se); };
     void output(int level);
     void genCode();
     void typeCheck();
 };
 
 
+class CallExpr:public ExprNode{
+private:
+    vector<ExprNode*>* epl;
+public:
+    CallExpr(SymbolEntry* se,vector<ExprNode*>* epl):ExprNode(se),epl(epl){dst = new Operand(se);};
+    void output(int level);
+    void typeCheck();
+    void genCode();
+    
+};
 class Constant : public ExprNode
 {
 public:

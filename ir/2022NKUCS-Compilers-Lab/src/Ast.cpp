@@ -117,7 +117,9 @@ void FunctionDef::genCode()
     // 如果已经有ret了，删除后面的指令
     
    
-   
+void CallExpr::genCode(){
+
+}   
 
 
 void BinaryExpr::genCode()
@@ -447,9 +449,12 @@ void ReturnStmt::genCode()
 
 void AssignStmt::genCode()
 {
+    
     BasicBlock *bb = builder->getInsertBB();
     expr->genCode();
+     
     Operand *addr = dynamic_cast<IdentifierSymbolEntry*>(lval->getSymPtr())->getAddr();
+    
     Operand *src = expr->getOperand();
     /***
      * We haven't implemented array yet, the lval can only be ID. So we just store the result of the `expr` to the addr of the id.
@@ -538,6 +543,10 @@ void AssignStmt::typeCheck()
     // Todo
 }
 void ExprStmt::typeCheck(){
+
+}
+
+void CallExpr::typeCheck(){
 
 }
 
@@ -708,6 +717,7 @@ void AssignStmt::output(int level)
     fprintf(yyout, "%*cAssignStmt\n", level, ' ');
     lval->output(level + 4);
     expr->output(level + 4);
+   
 }
 
 
@@ -729,8 +739,6 @@ void FunctionDef::output(int level)
     std::string name, type;
     
     name = se->toStr();
-    
-   
     type = se->getType()->toStr();
 
     fprintf(yyout, "%*cFunctionDefine function name: %s type: %s\n", level, ' ', 
@@ -741,5 +749,21 @@ void FunctionDef::output(int level)
         }
     }
     stmt->output(level + 4);
+}
+
+void CallExpr::output(int level){
     
+    std::string name,type;
+    name=symbolEntry->toStr();
+    type=symbolEntry->getType()->toStr();
+    
+    fprintf(yyout, "%*cCallExpr \t function: %s type: %s\n", level, ' ',name.c_str(),type.c_str());
+    //输出表达式
+    if(epl!=nullptr){
+    for(int i=0;i<(int)epl->size();i++){
+        (*epl)[i]->output(level+4);
+    }
+    }
+     
+   
 }

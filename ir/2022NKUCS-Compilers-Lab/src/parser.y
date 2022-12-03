@@ -31,6 +31,8 @@
 
     FunctionParam* fpa;
     vector<FunctionParam> * vfpa;
+
+    vector<ExprNode*>* vepl;
 }
 
 %start Program
@@ -43,7 +45,7 @@
 %token RETURN
 
 %nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef NullStmt ExprStmt WhileStmt
-%nterm <exprtype> Exp AddExp MulExp Cond LOrExp PrimaryExp LVal RelExp LAndExp EqExp UnaryExp
+%nterm <exprtype> Exp AddExp MulExp Cond LOrExp PrimaryExp LVal RelExp LAndExp EqExp UnaryExp CallExp
 %nterm <type> Type
 
 %nterm <vde> VarDef ConstDef
@@ -51,6 +53,8 @@
 
 %nterm <fpa> FuncFParam
 %nterm <vfpa> FuncFParams
+
+%nterm <vepl> ExpList
 
 %precedence THEN
 %precedence ELSE
@@ -146,6 +150,20 @@ Cond
     :
     LOrExp {$$ = $1;}
     ;
+//表达式列表
+ExpList:
+    Exp {$$=new vector<ExprNode*>();$$->push_back($1);}
+    |ExpList COMMA Exp {$$=$1;$$->push_back($3);}
+    |%empty {$$=nullptr;}
+
+//函数调用表达式
+CallExp:
+    ID LPAREN ExpList RPAREN{
+        //获取函数名对应的符号表项
+        SymbolEntry* se;
+        se=identifiers->lookup($1);
+        $$=new CallExpr(se,$3);
+    }
 PrimaryExp
     :
     LVal {
@@ -159,6 +177,7 @@ PrimaryExp
     {
         $$ = $2;
     }
+   |CallExp {$$=$1;}
     ;
 
 UnaryExp

@@ -11,12 +11,6 @@ int max(int a,int b){
 
 int main()
 {
-    a>b;
-    int d=(a+b)*3;
-    int c;
-    while(!b && a>b)
-        return 0;
     
-    a = 1 % 2;
-    return 0;
+    c=max(a,b);   
 }
