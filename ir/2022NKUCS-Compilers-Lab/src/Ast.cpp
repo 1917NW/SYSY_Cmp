@@ -118,7 +118,16 @@ void FunctionDef::genCode()
     
    
 void CallExpr::genCode(){
-
+    BasicBlock *bb = builder->getInsertBB();
+    vector<Operand*> params;
+    if(epl!=nullptr){
+        for(auto& i:*epl){
+            i->genCode();
+            params.push_back(i->getOperand());
+        }
+    }
+    new CallInstruction(dst,symbolEntry,params,bb);
+    
 }   
 
 

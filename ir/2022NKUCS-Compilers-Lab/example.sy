@@ -11,6 +11,7 @@ int max(int a,int b){
 
 int main()
 {
-    
-    c=max(a,b);   
+    int d=3;
+    int a=4;
+    c=max(a,d);   
 }

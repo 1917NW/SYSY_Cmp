@@ -163,6 +163,7 @@ CallExp:
         SymbolEntry* se;
         se=identifiers->lookup($1);
         $$=new CallExpr(se,$3);
+        cout<<5<<endl;
     }
 PrimaryExp
     :

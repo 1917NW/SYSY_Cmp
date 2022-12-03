@@ -5,6 +5,7 @@
 #include "Operand.h"
 #include<vector>
 #include<iostream>
+#include "Type.h"
 using namespace std;
 class SymbolEntry;
 class Unit;
@@ -77,12 +78,13 @@ class CallExpr:public ExprNode{
 private:
     vector<ExprNode*>* epl;
 public:
-    CallExpr(SymbolEntry* se,vector<ExprNode*>* epl):ExprNode(se),epl(epl){dst = new Operand(se);};
+    CallExpr(SymbolEntry* se,vector<ExprNode*>* epl):ExprNode(se),epl(epl){cout<<3<<endl;SymbolEntry *temp = new TemporarySymbolEntry(((FunctionType*)se->getType())->getRetType(), SymbolTable::getLabel()); dst = new Operand(temp);};
     void output(int level);
     void typeCheck();
     void genCode();
     
 };
+
 class Constant : public ExprNode
 {
 public:

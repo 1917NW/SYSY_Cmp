@@ -134,4 +134,18 @@ class XorInstruction : public Instruction {
     ~XorInstruction();
     void output() const;
 };
+
+class CallInstruction : public Instruction {
+   private:
+    SymbolEntry* func;
+    Operand* dst;
+   public:
+    CallInstruction(Operand* dst,
+                    SymbolEntry* func,
+                    std::vector<Operand*> params,
+                    BasicBlock* insert_bb = nullptr);
+    ~CallInstruction();
+    void output() const;
+};
+
 #endif
