@@ -32,6 +32,7 @@ public:
     virtual void output(int level) = 0;
     virtual void typeCheck() = 0;
     virtual void genCode() = 0;
+    
     std::vector<Instruction*>& trueList() {return true_list;}
     std::vector<Instruction*>& falseList() {return false_list;}
 };
@@ -41,10 +42,13 @@ class ExprNode : public Node
 protected:
     SymbolEntry *symbolEntry;
     Operand *dst;   // The result of the subtree is stored into dst.
+    //表达式类型
+    Type* type;
 public:
     ExprNode(SymbolEntry *symbolEntry) : symbolEntry(symbolEntry){};
     Operand* getOperand() {return dst;};
     SymbolEntry* getSymPtr() {return symbolEntry;};
+    virtual Type* getType(){return type;}
 };
 
 class BinaryExpr : public ExprNode
@@ -54,7 +58,14 @@ private:
     ExprNode *expr1, *expr2;
 public:
     enum {ADD, SUB, MUL,DIV,MOD, AND, OR, LESS, GREATER,EQ,NE,LOE,GOE};
-    BinaryExpr(SymbolEntry *se, int op, ExprNode*expr1, ExprNode*expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2){dst = new Operand(se);};
+    BinaryExpr(SymbolEntry *se, int op, ExprNode*expr1, ExprNode*expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2){dst = new Operand(se);
+       if(op>=BinaryExpr::AND && op<=BinaryExpr::GOE){
+        type=TypeSystem::boolType;
+       }
+       else if(op>=BinaryExpr::ADD && op<=BinaryExpr::MOD){
+        type=TypeSystem::intType;
+       }
+        };
     void output(int level);
     void typeCheck();
     void genCode();

@@ -17,6 +17,7 @@ public:
     bool isInt() const {return kind == INT;};
     bool isVoid() const {return kind == VOID;};
     bool isFunc() const {return kind == FUNC;};
+    virtual int getSize() const {return 0;}
 };
 
 class IntType : public Type
@@ -26,6 +27,7 @@ private:
 public:
     IntType(int size,bool is_const) : Type(Type::INT,is_const), size(size){};
     std::string toStr();
+    int getSize() const {return size;}
 };
 
 class VoidType : public Type
