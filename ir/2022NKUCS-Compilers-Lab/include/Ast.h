@@ -78,7 +78,7 @@ class CallExpr:public ExprNode{
 private:
     vector<ExprNode*>* epl;
 public:
-    CallExpr(SymbolEntry* se,vector<ExprNode*>* epl):ExprNode(se),epl(epl){cout<<3<<endl;SymbolEntry *temp = new TemporarySymbolEntry(((FunctionType*)se->getType())->getRetType(), SymbolTable::getLabel()); dst = new Operand(temp);};
+    CallExpr(SymbolEntry* se,vector<ExprNode*>* epl):ExprNode(se),epl(epl){SymbolEntry *temp = new TemporarySymbolEntry(((FunctionType*)se->getType())->getRetType(), SymbolTable::getLabel()); dst = new Operand(temp);};
     void output(int level);
     void typeCheck();
     void genCode();

@@ -386,8 +386,6 @@ CallInstruction::CallInstruction(Operand* dst,
                                  std::vector<Operand*> params,
                                  BasicBlock* insert_bb)
     : Instruction(CALL, insert_bb), func(func), dst(dst) {
-    std::cout<<dst->toStr()<<std::endl;
-    std::cout<<4<<std::endl;
     operands.push_back(dst);
     if (dst)
         dst->setDef(this);

@@ -121,6 +121,9 @@ BlockStmt
             identifiers = identifiers->getPrev();
             delete top;
         }
+        |LBRACE RBRACE {
+        $$ = new CompoundStmt(nullptr);
+    }
     ;
 IfStmt
     : IF LPAREN Cond RPAREN Stmt %prec THEN {
@@ -163,8 +166,8 @@ CallExp:
         SymbolEntry* se;
         se=identifiers->lookup($1);
         $$=new CallExpr(se,$3);
-        cout<<5<<endl;
     }
+
 PrimaryExp
     :
     LVal {
@@ -223,13 +226,13 @@ AddExp
     :
     MulExp {$$ = $1;}
     |
-    AddExp ADD PrimaryExp
+    AddExp ADD MulExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::ADD, $1, $3);
     }
     |
-    AddExp SUB PrimaryExp
+    AddExp SUB MulExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::SUB, $1, $3);

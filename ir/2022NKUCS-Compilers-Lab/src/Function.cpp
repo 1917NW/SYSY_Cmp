@@ -21,10 +21,10 @@ Function::Function(Unit *u, SymbolEntry *s)
 
 Function::~Function()
 {
-    auto delete_list = block_list;
-    for (auto &i : delete_list)
-        delete i;
-    parent->removeFunc(this);
+    // auto delete_list = block_list;
+    // for (auto &i : delete_list)
+    //     delete i;
+    // parent->removeFunc(this);
 }
 
 

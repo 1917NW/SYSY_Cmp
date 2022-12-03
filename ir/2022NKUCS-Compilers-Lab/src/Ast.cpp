@@ -23,8 +23,11 @@ void Node::backPatch(std::vector<Instruction*> &list, BasicBlock*bb)
 {
     for(auto &inst:list)
     {
-        if(inst->isCond())
+        if(inst->isCond()){
+
             dynamic_cast<CondBrInstruction*>(inst)->setTrueBranch(bb);
+
+        }
         else if(inst->isUncond())
             dynamic_cast<UncondBrInstruction*>(inst)->setBranch(bb);
     }
@@ -165,9 +168,22 @@ void BinaryExpr::genCode()
         // Todo
          BasicBlock *falseBB = new BasicBlock(func);
          expr1->genCode();
+
+
+         bb = builder->getInsertBB();
+         BasicBlock *truebb, *falsebb, *tempbb;
+        //临时假块
+          truebb = new BasicBlock(func);
+         falsebb = new BasicBlock(func);
+         tempbb = new BasicBlock(func);
+         expr1->trueList().push_back(new CondBrInstruction(truebb, tempbb, expr1->getOperand(), bb));
+         expr1->falseList().push_back(new UncondBrInstruction(falsebb, tempbb));
+
+         
          backPatch(expr1->falseList(), falseBB);
          builder->setInsertBB(falseBB);   
          expr2->genCode();
+
          false_list=expr2->falseList();
          true_list=merge(expr1->trueList(),expr2->trueList());
     }

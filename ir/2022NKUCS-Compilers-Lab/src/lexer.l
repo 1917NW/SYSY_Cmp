@@ -218,6 +218,131 @@ linecommentbegin "//"
     yylval.itype=num;
     return INTEGER;
 }
+
+{blockcommentbegin} {BEGIN BLOCKCOMMENT;}
+
+<BLOCKCOMMENT>{blockcommentelement} {}
+<BLOCKCOMMENT>{blockcommentend} {BEGIN INITIAL;}
+
+{linecommentbegin} {BEGIN LINECOMMENT;}
+<LINECOMMENT>{linecommentelement} {}
+<LINECOMMENT>{linecommentend} {BEGIN INITIAL;}
+
+"putint" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4(yytext);
+    char *lexeme;
+    lexeme = new char[strlen(yytext) + 1];
+    strcpy(lexeme, yytext);
+    yylval.strtype = lexeme;
+
+    //获取全局符号表
+    SymbolTable* top=identifiers;
+    while(top->getPrev()){
+        top=top->getPrev();
+    }
+
+    //设置void putint(int)的类型
+    Type *funcType;
+    vector<Type*> vtp;
+
+    vtp.push_back(TypeSystem::intType);
+    funcType = new FunctionType(TypeSystem::voidType,vtp);
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+
+    //插入符号表
+    top->install(yytext,se);
+    return ID;
+}
+
+"getint" {
+     if(dump_tokens)
+        DEBUG_FOR_LAB4(yytext);
+    char *lexeme;
+    lexeme = new char[strlen(yytext) + 1];
+    strcpy(lexeme, yytext);
+    yylval.strtype = lexeme;
+
+   
+    //获取全局符号表
+    SymbolTable* top=identifiers;
+    while(top->getPrev()){
+        top=top->getPrev();
+    }
+
+    //设置void getint()的类型
+    Type *funcType;
+    vector<Type*> vtp;
+    
+    funcType = new FunctionType(TypeSystem::intType,vtp);
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+
+    //插入符号表
+    top->install(yytext,se);
+    
+    return ID;
+}
+
+"putch" {
+     if(dump_tokens)
+        DEBUG_FOR_LAB4(yytext);
+    char *lexeme;
+    lexeme = new char[strlen(yytext) + 1];
+    strcpy(lexeme, yytext);
+    yylval.strtype = lexeme;
+
+   
+    //获取全局符号表
+    SymbolTable* top=identifiers;
+    while(top->getPrev()){
+        top=top->getPrev();
+    }
+
+    //设置void putch(int)的类型
+    Type *funcType;
+    vector<Type*> vtp;
+    
+    vtp.push_back(TypeSystem::intType);
+    
+    funcType = new FunctionType(TypeSystem::voidType,vtp);
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+
+    //插入符号表
+    top->install(yytext,se);
+    
+
+    return ID;
+}
+
+"getch" {
+     if(dump_tokens)
+        DEBUG_FOR_LAB4(yytext);
+    char *lexeme;
+    lexeme = new char[strlen(yytext) + 1];
+    strcpy(lexeme, yytext);
+    yylval.strtype = lexeme;
+
+   
+    //获取全局符号表
+    SymbolTable* top=identifiers;
+    while(top->getPrev()){
+        top=top->getPrev();
+    }
+
+    //设置int getch()的类型
+    Type *funcType;
+    vector<Type*> vtp;
+    
+    funcType = new FunctionType(TypeSystem::intType,vtp);
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+
+    //插入符号表
+    top->install(yytext,se);
+    
+
+    return ID;
+}
+
 {ID} {
     if(dump_tokens)
         DEBUG_FOR_LAB4(yytext);
@@ -230,12 +355,5 @@ linecommentbegin "//"
 {EOL} yylineno++;
 {WHITE}
 
-{blockcommentbegin} {BEGIN BLOCKCOMMENT;}
 
-<BLOCKCOMMENT>{blockcommentelement} {}
-<BLOCKCOMMENT>{blockcommentend} {BEGIN INITIAL;}
-
-{linecommentbegin} {BEGIN LINECOMMENT;}
-<LINECOMMENT>{linecommentelement} {}
-<LINECOMMENT>{linecommentend} {BEGIN INITIAL;}
 %%
