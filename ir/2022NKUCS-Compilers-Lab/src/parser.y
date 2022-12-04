@@ -165,8 +165,12 @@ CallExp:
     ID LPAREN ExpList RPAREN{
         //获取函数名对应的符号表项
         SymbolEntry* se;
-        se=identifiers->lookup($1);
+        se=identifiers->lookup_top($1);
+
+        if(se!=nullptr && se->isFunc())
         $$=new CallExpr(se,$3);
+        else 
+        fprintf(stderr, "function \"%s\" is undefined\n", (char*)$1);
         
     }
 
@@ -258,7 +262,7 @@ RelExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::GREATER, $1, $3);
-          cout<<100<<endl;
+    
     }
     |
     RelExp LOE AddExp
@@ -380,6 +384,7 @@ DeclStmt
     :
     Type VarDefList SEMICOLON {
          $$ = new DeclStmt($2);
+         
     }
     ;
     |
@@ -434,7 +439,7 @@ FuncDef
 
         //获取当前函数的形参列表
         NowFuncParamsType=((FunctionType*)funcType)->GetParamsType();
-        SymbolEntry *se = new IdentifierSymbolEntry(funcType, $2, identifiers->getLevel());
+        SymbolEntry *se = new IdentifierSymbolEntry(funcType, $2, identifiers->getLevel(),SymbolEntry::FUNC);
 
         //把函数名放到符号表链的第一个符号表中
         identifiers->install($2, se);

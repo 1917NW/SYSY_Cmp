@@ -10,6 +10,9 @@ extern FILE *yyout;
 int Node::counter = 0;
 IRBuilder* Node::builder = nullptr;
 
+Type* nowFucntionRetType;
+Type* nowFucntionType;
+
 Node::Node()
 {
     seq = counter++;
@@ -440,6 +443,11 @@ void DeclStmt::genCode()
 {
     for(auto& i:(*p)){
     IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(i.id->getSymPtr());
+    if(i.ep->getType()==TypeSystem::boolType){
+                    i.ep=new ImplicitCastExpr(i.ep, TypeSystem::intType);
+                    
+                }
+
     //怎么处理全局变量
     if(se->isGlobal())
     {
@@ -513,9 +521,10 @@ void ExprStmt::genCode(){
 
 void ImplicitCastExpr::genCode(){
    
+  
     if(expr){
         expr->genCode();
-        
+    
         BasicBlock* bb = builder->getInsertBB();
         //int2bool
         if (type == TypeSystem::boolType && ((IntType*)(expr->getType()))->getSize()!=1) {
@@ -525,7 +534,6 @@ void ImplicitCastExpr::genCode(){
         }
 
         //bool2int
-        cout<<"bool2int"<<endl;
         if(type==TypeSystem::intType && ((IntType*)(expr->getType()))->getSize()!=32){
             new ZextInstruction(this->dst, expr->getOperand(), bb);
         }
@@ -545,6 +553,8 @@ void FunctionDef::typeCheck()
 {
     // Todo
     //检查函数的返回类型和参数
+    nowFucntionRetType=((FunctionType*)(se->getType()))->getRetType();
+   
 
     //检查语句
     stmt->typeCheck();
@@ -554,7 +564,6 @@ void FunctionDef::typeCheck()
 void BinaryExpr::typeCheck()
 {
     // Todo
-    cout<<(op);
      if(expr1->getType()==TypeSystem::voidType || expr2->getType()==TypeSystem::voidType){
              fprintf(stderr, "Void type is involved in compution \n");
         }
@@ -582,7 +591,6 @@ void UnaryExpr::typeCheck(){
     if(op==NOT && t->isInt() && ((IntType*)t)->getSize()!=1){
         expr=new ImplicitCastExpr(expr,TypeSystem::boolType);
     }
-    cout<<( ((IntType*)t)->getSize())<<endl;
     if(op==SUB && t->isInt() && ((IntType*)t)->getSize()!=32){
         
         expr=new ImplicitCastExpr(expr,TypeSystem::intType);
@@ -603,7 +611,6 @@ void Id::typeCheck()
 void IfStmt::typeCheck()
 {
     // Todo
-     cout<<(((IntType*)(cond->getType()))->getSize())<<endl;
 
     if(((IntType*)(cond->getType()))->getSize()!=1){
        
@@ -617,7 +624,6 @@ void IfStmt::typeCheck()
 void IfElseStmt::typeCheck()
 {
     // Todo
-      cout<<(((IntType*)(cond->getType()))->getSize())<<endl;
 
     if(((IntType*)(cond->getType()))->getSize()!=1){
        
@@ -631,7 +637,6 @@ void IfElseStmt::typeCheck()
 
 void WhileStmt::typeCheck(){
     // Todo
-      cout<<(((IntType*)(cond->getType()))->getSize())<<endl;
 
     if(((IntType*)(cond->getType()))->getSize()!=1){
        
@@ -666,18 +671,50 @@ void DeclStmt::typeCheck()
 {
     // Todo
     //与赋值语句一样，需要类型转换，比如用bool型初始化一个int型，或者用int型初始化一个bool型
+    if(p!=nullptr){
+        for(auto i:*p){
+            if(i.ep){
+                if(i.ep->getType()==TypeSystem::boolType){
+                    i.ep=new ImplicitCastExpr(i.ep, TypeSystem::intType);
+                    
+                }
+        }
+        }
+    }
+
+     if(p!=nullptr){
+        for(auto i:*p){
+            if(i.ep){
+                i.ep->typeCheck();
+        }
+        }
+    }
+
 }
 
 void ReturnStmt::typeCheck()
 {
     // Todo
     //返回类型是否与函数返回一致，不一致的是否能够转换
+    if(retValue->getType()!=TypeSystem::voidType && nowFucntionRetType==TypeSystem::voidType){
+            cout<<"Wrong Function! return non-void type"<<endl;
+    }
+    else if(nowFucntionRetType==TypeSystem::intType && retValue->getType()==TypeSystem::boolType){
+        retValue=new ImplicitCastExpr(retValue,TypeSystem::intType);
+    }
 }
 
 void AssignStmt::typeCheck()
 {
     // Todo
     //类型转换，比如用bool型赋值一个int型，或者用int型赋值一个bool型
+    if(lval->getType()==TypeSystem::intType && expr->getType()==TypeSystem::boolType){
+        expr=new ImplicitCastExpr(expr,TypeSystem::intType);
+    }
+    if(lval->getType()==TypeSystem::boolType && expr->getType()==TypeSystem::intType){
+        expr=new ImplicitCastExpr(expr,TypeSystem::boolType);
+    }
+    expr->typeCheck();
 }
 
 
@@ -688,6 +725,25 @@ void ExprStmt::typeCheck(){
 
 void CallExpr::typeCheck(){
     //检查是否与函数参数的类型相同
+
+    
+    vector<Type*>* params=((FunctionType*)(this->getSymPtr()->getType()))->GetParamsType();
+    if(epl!=nullptr ){
+        cout<<"call"<<endl;
+        if((*epl).size()!= (*params).size())
+            cout<<"num not match!"<<endl;
+        else{
+           for(int i=0;i<(int)(*epl).size();i++){
+            if((*params)[i]==TypeSystem::intType && (*epl)[i]->getType()==TypeSystem::boolType)
+                {
+                     (*epl)[i]=new ImplicitCastExpr( (*epl)[i],TypeSystem::intType);
+                }
+           }
+        }
+    }
+    else{
+        cout<<"not match!"<<endl;
+    }
 }
 
 void ImplicitCastExpr::typeCheck(){

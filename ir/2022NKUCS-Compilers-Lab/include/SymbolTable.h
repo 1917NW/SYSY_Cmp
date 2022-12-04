@@ -11,8 +11,8 @@ class SymbolEntry
 {
 private:
     int kind;
-protected:
-    enum {CONSTANT, VARIABLE, TEMPORARY};
+public:
+    enum {CONSTANT, VARIABLE, TEMPORARY,FUNC};
     Type *type;
 
 public:
@@ -21,6 +21,7 @@ public:
     bool isConstant() const {return kind == CONSTANT;};
     bool isTemporary() const {return kind == TEMPORARY;};
     bool isVariable() const {return kind == VARIABLE;};
+    bool isFunc() const {return kind==FUNC;};
     Type* getType() {return type;};
     void setType(Type *type) {this->type = type;};
     virtual std::string toStr() = 0;
@@ -82,6 +83,7 @@ private:
 
 public:
     IdentifierSymbolEntry(Type *type, std::string name, int scope);
+    IdentifierSymbolEntry(Type *type, std::string name, int scope,int kind);
     virtual ~IdentifierSymbolEntry() {};
     std::string toStr();
     bool isGlobal() const {return scope == GLOBAL;};
@@ -138,6 +140,7 @@ public:
     void install(std::string name, SymbolEntry* entry);
     SymbolEntry* lookup(std::string name);
     SymbolEntry* lookup_now(std::string name);
+    SymbolEntry* lookup_top(std::string name);
     SymbolTable* getPrev() {return prev;};
     int getLevel() {return level;};
     static int getLabel() {return counter++;};

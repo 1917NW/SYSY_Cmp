@@ -26,6 +26,11 @@ IdentifierSymbolEntry::IdentifierSymbolEntry(Type *type, std::string name, int s
     addr = nullptr;
 }
 
+IdentifierSymbolEntry::IdentifierSymbolEntry(Type *type, std::string name, int scope,int kind) : SymbolEntry(type, kind), name(name)
+{
+    this->scope = scope;
+    addr = nullptr;
+}
 std::string IdentifierSymbolEntry::toStr()
 {
     return "@" + name;
@@ -93,6 +98,20 @@ SymbolEntry* SymbolTable::lookup_now(std::string name)
     return nullptr;
 }
 
+SymbolEntry* SymbolTable::lookup_top(std::string name)
+{
+    // Todo
+    SymbolTable * top=identifiers;
+    while(top->prev!=nullptr){
+        top=top->prev;
+    }
+
+    if(top->symbolTable.find(name)!=top->symbolTable.end()){
+        return top->symbolTable[name];
+    }
+
+    return nullptr;
+}
 
 // install the entry into current symbol table.
 void SymbolTable::install(std::string name, SymbolEntry* entry)
