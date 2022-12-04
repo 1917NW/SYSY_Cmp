@@ -248,10 +248,13 @@ linecommentbegin "//"
 
     vtp.push_back(TypeSystem::intType);
     funcType = new FunctionType(TypeSystem::voidType,vtp);
-    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel(),SymbolEntry::FUNC);
 
     //插入符号表
     top->install(yytext,se);
+    sysyTable->install(yytext,se);
+
+
     return ID;
 }
 
@@ -275,11 +278,12 @@ linecommentbegin "//"
     vector<Type*> vtp;
     
     funcType = new FunctionType(TypeSystem::intType,vtp);
-    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel(),SymbolEntry::FUNC);
 
     //插入符号表
     top->install(yytext,se);
-    
+    sysyTable->install(yytext,se);
+
     return ID;
 }
 
@@ -305,10 +309,11 @@ linecommentbegin "//"
     vtp.push_back(TypeSystem::intType);
     
     funcType = new FunctionType(TypeSystem::voidType,vtp);
-    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel(),SymbolEntry::FUNC);
 
     //插入符号表
     top->install(yytext,se);
+     sysyTable->install(yytext,se);
     
 
     return ID;
@@ -334,10 +339,11 @@ linecommentbegin "//"
     vector<Type*> vtp;
     
     funcType = new FunctionType(TypeSystem::intType,vtp);
-    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel());
+    SymbolEntry *se = new IdentifierSymbolEntry(funcType,yytext, top->getLevel(),SymbolEntry::FUNC);
 
     //插入符号表
     top->install(yytext,se);
+     sysyTable->install(yytext,se);
     
 
     return ID;

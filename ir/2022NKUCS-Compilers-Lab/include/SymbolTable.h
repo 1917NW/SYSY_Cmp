@@ -148,5 +148,6 @@ public:
 
 extern SymbolTable *identifiers;
 extern SymbolTable *globals;
+extern SymbolTable *sysyTable;
 
 #endif

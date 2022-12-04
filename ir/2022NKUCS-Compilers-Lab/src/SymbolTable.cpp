@@ -121,5 +121,8 @@ void SymbolTable::install(std::string name, SymbolEntry* entry)
 
 int SymbolTable::counter = 0;
 static SymbolTable t;
+static SymbolTable sysyTable2;
 SymbolTable *identifiers = &t;
 SymbolTable *globals = &t;
+
+SymbolTable *sysyTable = &sysyTable2;

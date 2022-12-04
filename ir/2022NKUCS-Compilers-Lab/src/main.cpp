@@ -9,6 +9,7 @@ Ast ast;
 Unit unit;
 extern FILE *yyin;
 extern FILE *yyout;
+extern SymbolTable *sysyTable;
 
 int yyparse();
 
@@ -68,8 +69,55 @@ int main(int argc, char *argv[])
     //生成程序流图
     ast.genCode(&unit);
 
+
     //根据程序流图生成中间代码
     if(dump_ir)
         unit.output();
+
+    
+    if(sysyTable->lookup("putint")){
+
+        SymbolEntry* se=sysyTable->lookup("putint");
+        std::string funcName,returnType,fparamType;
+        FunctionType* functionType=(FunctionType*)(se->getType());
+        funcName=se->toStr();
+        returnType=functionType->getRetType()->toStr();
+        fparamType=functionType->paramsToStr();
+        fprintf(yyout,"declare %s %s(%s)\n",returnType.c_str(),funcName.c_str(),fparamType.c_str());
+    }
+
+     if(sysyTable->lookup("getint")){
+
+        SymbolEntry* se=sysyTable->lookup("getint");
+        std::string funcName,returnType,fparamType;
+        FunctionType* functionType=(FunctionType*)(se->getType());
+        funcName=se->toStr();
+        returnType=functionType->getRetType()->toStr();
+        fparamType=functionType->paramsToStr();
+        fprintf(yyout,"declare %s %s(%s)\n",returnType.c_str(),funcName.c_str(),fparamType.c_str());
+    }
+
+     if(sysyTable->lookup("putch")){
+
+        SymbolEntry* se=sysyTable->lookup("putch");
+        std::string funcName,returnType,fparamType;
+        FunctionType* functionType=(FunctionType*)(se->getType());
+        funcName=se->toStr();
+        returnType=functionType->getRetType()->toStr();
+        fparamType=functionType->paramsToStr();
+        fprintf(yyout,"declare %s %s(%s)\n",returnType.c_str(),funcName.c_str(),fparamType.c_str());
+    }
+     if(sysyTable->lookup("getch")){
+
+        SymbolEntry* se=sysyTable->lookup("getch");
+        std::string funcName,returnType,fparamType;
+        FunctionType* functionType=(FunctionType*)(se->getType());
+        funcName=se->toStr();
+        returnType=functionType->getRetType()->toStr();
+        fparamType=functionType->paramsToStr();
+        fprintf(yyout,"declare %s %s(%s)\n",returnType.c_str(),funcName.c_str(),fparamType.c_str());
+    }
     return 0;
+
+    
 }

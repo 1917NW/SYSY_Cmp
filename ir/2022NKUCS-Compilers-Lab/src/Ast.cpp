@@ -728,7 +728,7 @@ void CallExpr::typeCheck(){
 
     
     vector<Type*>* params=((FunctionType*)(this->getSymPtr()->getType()))->GetParamsType();
-    if(epl!=nullptr ){
+    if(epl!=nullptr){
         cout<<"call"<<endl;
         if((*epl).size()!= (*params).size())
             cout<<"num not match!"<<endl;
@@ -742,6 +742,7 @@ void CallExpr::typeCheck(){
         }
     }
     else{
+        if((*params).size()!=0)
         cout<<"not match!"<<endl;
     }
 }
