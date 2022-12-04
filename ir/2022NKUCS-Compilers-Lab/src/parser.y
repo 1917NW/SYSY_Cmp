@@ -196,6 +196,7 @@ UnaryExp
     | SUB UnaryExp {
          SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new UnaryExpr(se, UnaryExpr::SUB, $2);
+        
     }
     | NOT UnaryExp{
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
@@ -230,9 +231,10 @@ AddExp
     |
     AddExp ADD MulExp
     {
+        
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::ADD, $1, $3);
-        cout<<3<<endl;
+       
     }
     |
     AddExp SUB MulExp
@@ -256,6 +258,7 @@ RelExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::GREATER, $1, $3);
+          cout<<100<<endl;
     }
     |
     RelExp LOE AddExp

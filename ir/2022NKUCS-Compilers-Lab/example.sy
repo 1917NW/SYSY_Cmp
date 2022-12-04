@@ -1,22 +1,7 @@
-int a, b, d;
-
-int set_a(int val) { a = val; return a; }
-int set_b(int val) { b = val; return b; }
-int set_d(int val) { d = val; return d; }
 
 int main()
 {
-    a = 2; b = 3;
-    if (set_a(0)) {}
-    
-
-    
-
-   
-
- 
-
-    
-
+    int a = 2, b = 3;
+    -(a>b);
     return 0;
 }

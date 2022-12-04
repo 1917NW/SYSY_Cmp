@@ -58,13 +58,14 @@ private:
     ExprNode *expr1, *expr2;
 public:
     enum {ADD, SUB, MUL,DIV,MOD, AND, OR, LESS, GREATER,EQ,NE,LOE,GOE};
-    BinaryExpr(SymbolEntry *se, int op, ExprNode*expr1, ExprNode*expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2){dst = new Operand(se);
+    BinaryExpr(SymbolEntry *se, int op, ExprNode*expr1, ExprNode*expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2){
        if(op>=BinaryExpr::AND && op<=BinaryExpr::GOE){
         type=TypeSystem::boolType;
        }
        else if(op>=BinaryExpr::ADD && op<=BinaryExpr::MOD){
         type=TypeSystem::intType;
        }
+       SymbolEntry *temp = new TemporarySymbolEntry(type, SymbolTable::getLabel()); dst = new Operand(temp);
         };
     void output(int level);
     void typeCheck();

@@ -265,25 +265,9 @@ void UnaryExpr::genCode(){
         
         BasicBlock* bb = builder->getInsertBB();
         Operand* src = expr->getOperand();
-       
-        Type* t=expr->getType();
-       
-        if(t->isInt() && ((IntType*)t)->getSize()==32){
-
-            Operand* temp = new Operand(new TemporarySymbolEntry(
-                TypeSystem::boolType, SymbolTable::getLabel()));
-
-            new CmpInstruction(
-                CmpInstruction::NE, temp, src,
-                new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)),
-                bb);
-                
-            src = temp;
-        }
         new XorInstruction(dst, src, bb);
         
     } else if (op == SUB) {
-         
         Operand* src2;
         BasicBlock* bb = builder->getInsertBB();
         Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
@@ -541,6 +525,7 @@ void ImplicitCastExpr::genCode(){
         }
 
         //bool2int
+        cout<<"bool2int"<<endl;
         if(type==TypeSystem::intType && ((IntType*)(expr->getType()))->getSize()!=32){
             new ZextInstruction(this->dst, expr->getOperand(), bb);
         }
@@ -576,21 +561,33 @@ void BinaryExpr::typeCheck()
     else if(op==BinaryExpr::AND || op==BinaryExpr::OR){
      if(((IntType*)(expr1->getType()))->getSize()!=1){
         expr1=new ImplicitCastExpr(expr1,TypeSystem::boolType);
-        cout<<8<<endl;
         }
 
      if(((IntType*)(expr2->getType()))->getSize()!=1){
         expr2=new ImplicitCastExpr(expr2,TypeSystem::boolType);
-        }
+    }
     }
     
 }
 
 void UnaryExpr::typeCheck(){
     // Todo
+
+   
+     Type* t=expr->getType();
+       
     if(expr->getType()==TypeSystem::voidType && (op==NOT || op==SUB)){
              fprintf(stderr, "Void type is involved in compution \n");
         }
+    if(op==NOT && t->isInt() && ((IntType*)t)->getSize()!=1){
+        expr=new ImplicitCastExpr(expr,TypeSystem::boolType);
+    }
+    cout<<( ((IntType*)t)->getSize())<<endl;
+    if(op==SUB && t->isInt() && ((IntType*)t)->getSize()!=32){
+        
+        expr=new ImplicitCastExpr(expr,TypeSystem::intType);
+    }
+
 }
 
 void Constant::typeCheck()
@@ -620,10 +617,29 @@ void IfStmt::typeCheck()
 void IfElseStmt::typeCheck()
 {
     // Todo
+      cout<<(((IntType*)(cond->getType()))->getSize())<<endl;
+
+    if(((IntType*)(cond->getType()))->getSize()!=1){
+       
+        cond=new ImplicitCastExpr(cond,TypeSystem::boolType);
+        
+    }
+    cond->typeCheck();
+    thenStmt->typeCheck();
+    elseStmt->typeCheck();
 }
 
 void WhileStmt::typeCheck(){
     // Todo
+      cout<<(((IntType*)(cond->getType()))->getSize())<<endl;
+
+    if(((IntType*)(cond->getType()))->getSize()!=1){
+       
+        cond=new ImplicitCastExpr(cond,TypeSystem::boolType);
+    }
+
+    cond->typeCheck();
+    stmt->typeCheck();
 }
 
 void NullStmt::typeCheck(){

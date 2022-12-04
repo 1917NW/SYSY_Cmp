@@ -351,6 +351,8 @@ ZextInstruction::~ZextInstruction() {
 void ZextInstruction::output() const {
     Operand* dst = operands[0];
     Operand* src = operands[1];
+
+    std::cout<< src->getType()->toStr()<<std::endl;
     fprintf(yyout, "  %s = zext %s %s to i32\n", dst->toStr().c_str(),
             src->getType()->toStr().c_str(), src->toStr().c_str());
 }
