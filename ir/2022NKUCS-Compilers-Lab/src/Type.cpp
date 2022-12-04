@@ -30,6 +30,17 @@ std::string FunctionType::toStr()
     return buffer.str();
 }
 
+std::string FunctionType::paramsToStr(){
+    std::string paramstr="";
+    if(paramsType.size()!=0){
+        paramstr=paramsType[0]->toStr();
+    }
+    for(int i=1;i<(int)paramsType.size();i++){
+        paramstr+=","+paramsType[i]->toStr();
+    }
+    return paramstr;
+}
+
 std::string PointerType::toStr()
 {
     std::ostringstream buffer;

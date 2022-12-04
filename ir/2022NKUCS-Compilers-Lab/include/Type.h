@@ -48,6 +48,7 @@ public:
     Type* getRetType() {return returnType;};
     std::string toStr();
     std::vector<Type*>* GetParamsType(){return &paramsType;};
+    std::string paramsToStr();
 };
 
 class PointerType : public Type
