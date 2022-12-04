@@ -27,7 +27,7 @@ private:
 public:
     IntType(int size,bool is_const) : Type(Type::INT,is_const), size(size){};
     std::string toStr();
-    int getSize() const {return size;}
+    int getSize()  {return size;}
 };
 
 class VoidType : public Type

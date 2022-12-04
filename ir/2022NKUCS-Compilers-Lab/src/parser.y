@@ -128,6 +128,7 @@ BlockStmt
 IfStmt
     : IF LPAREN Cond RPAREN Stmt %prec THEN {
         $$ = new IfStmt($3, $5);
+       
     }
     | IF LPAREN Cond RPAREN Stmt ELSE Stmt {
         $$ = new IfElseStmt($3, $5, $7);
@@ -166,6 +167,7 @@ CallExp:
         SymbolEntry* se;
         se=identifiers->lookup($1);
         $$=new CallExpr(se,$3);
+        
     }
 
 PrimaryExp
@@ -230,6 +232,7 @@ AddExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::ADD, $1, $3);
+        cout<<3<<endl;
     }
     |
     AddExp SUB MulExp
@@ -320,11 +323,16 @@ Type
 
 VarDef
     :ID { 
+        if(identifiers->lookup_now($1)){
+             fprintf(stderr, "identifier \"%s\" is already defined\n", (char*)$1);
+        }
+        else{
         SymbolEntry *se;
         se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel());
         identifiers->install($1, se);
         $$=new VarDef_entry(new Id(se),nullptr);
         delete []$1;
+        }
         }
     |ID ASSIGN Exp {
         SymbolEntry *se;
@@ -343,11 +351,16 @@ VarDefList
 //常量定义
 ConstDef
     :ID ASSIGN Exp {
+        if(identifiers->lookup_now($1)){
+             fprintf(stderr, "identifier \"%s\" is already defined\n", (char*)$1);
+        }
+        else{
         SymbolEntry *se;
         se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel());
         identifiers->install($1, se);
         $$=new VarDef_entry(new Id(se),$3);
         delete []$1;
+        }
     }
     ;
 

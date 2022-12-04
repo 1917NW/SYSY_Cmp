@@ -6,14 +6,17 @@ int set_d(int val) { d = val; return d; }
 
 int main()
 {
-  
-
     a = 2; b = 3;
+    if (set_a(0)) {}
     
-    putint(a); putch(32);
-    putint(b); putch(10);
+
+    
 
    
+
+ 
+
+    
 
     return 0;
 }

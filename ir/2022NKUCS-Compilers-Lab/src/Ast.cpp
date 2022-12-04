@@ -136,6 +136,8 @@ void CallExpr::genCode(){
 
 void BinaryExpr::genCode()
 {
+   
+    {
     BasicBlock *bb = builder->getInsertBB();
     Function *func = bb->getParent();
     //逻辑运算表达式
@@ -168,8 +170,6 @@ void BinaryExpr::genCode()
         // Todo
          BasicBlock *falseBB = new BasicBlock(func);
          expr1->genCode();
-
-
          bb = builder->getInsertBB();
          BasicBlock *truebb, *falsebb, *tempbb;
         //临时假块
@@ -182,8 +182,8 @@ void BinaryExpr::genCode()
          
          backPatch(expr1->falseList(), falseBB);
          builder->setInsertBB(falseBB);   
+        
          expr2->genCode();
-
          false_list=expr2->falseList();
          true_list=merge(expr1->trueList(),expr2->trueList());
     }
@@ -191,6 +191,8 @@ void BinaryExpr::genCode()
     else if(op >= LESS && op <= GOE)
     {
         // Todo
+        
+        
         expr1->genCode();
         expr2->genCode();
         
@@ -221,11 +223,12 @@ void BinaryExpr::genCode()
         }
         new CmpInstruction(cmpopcode, dst, src1, src2, bb);
         //
-       
+        
     }
     //算术运算表达式
     else if(op >= ADD && op <= MOD)
     {
+        
         expr1->genCode();
         expr2->genCode();
         Operand *src1 = expr1->getOperand();
@@ -250,28 +253,43 @@ void BinaryExpr::genCode()
             break;
         }
         new BinaryInstruction(opcode, dst, src1, src2, bb);
+        }
     }
 }
 
 void UnaryExpr::genCode(){
+
     expr->genCode();
+
     if (op == NOT) {
+        
         BasicBlock* bb = builder->getInsertBB();
         Operand* src = expr->getOperand();
+       
+        Type* t=expr->getType();
+       
+        if(t->isInt() && ((IntType*)t)->getSize()==32){
+
             Operand* temp = new Operand(new TemporarySymbolEntry(
                 TypeSystem::boolType, SymbolTable::getLabel()));
+
             new CmpInstruction(
                 CmpInstruction::NE, temp, src,
                 new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)),
                 bb);
+                
             src = temp;
-            new XorInstruction(dst, src, bb);
+        }
+        new XorInstruction(dst, src, bb);
+        
     } else if (op == SUB) {
+         
         Operand* src2;
         BasicBlock* bb = builder->getInsertBB();
         Operand* src1 = new Operand(new ConstantSymbolEntry(dst->getType(), 0));
         src2 = expr->getOperand();
         new BinaryInstruction(BinaryInstruction::SUB, dst, src1, src2, bb);
+        
     }
 }
 
@@ -292,12 +310,14 @@ void Id::genCode()
 
 void IfStmt::genCode()
 {
+   
     Function *func;
     BasicBlock *then_bb, *end_bb,*bb;
 
     func = builder->getInsertBB()->getParent();
     then_bb = new BasicBlock(func);
     end_bb = new BasicBlock(func);
+  
 
     cond->genCode();
     
@@ -341,6 +361,13 @@ void WhileStmt::genCode(){
    new UncondBrInstruction(cond_bb,bb);
 
    builder->setInsertBB(cond_bb);
+
+   if(((IntType*)(cond->getType()))->getSize()!=1){
+       
+        cond=new ImplicitCastExpr(cond,TypeSystem::boolType);
+        
+    }
+
    cond->genCode();
    bb = builder->getInsertBB();
      BasicBlock *truebb, *falsebb, *tempbb;
@@ -373,6 +400,11 @@ void IfElseStmt::genCode()
     else_bb = new BasicBlock(func);
     end_bb = new BasicBlock(func);
 
+    if(((IntType*)(cond->getType()))->getSize()!=1){
+       
+        cond=new ImplicitCastExpr(cond,TypeSystem::boolType);
+        
+    }
     cond->genCode();
     
     bb = builder->getInsertBB();
@@ -474,7 +506,9 @@ void ReturnStmt::genCode()
 
 void AssignStmt::genCode()
 {
-    
+     if(expr->getType()==TypeSystem::voidType){
+             fprintf(stderr, "Void type is not allowed in assginment stmt \n");
+        }else{
     BasicBlock *bb = builder->getInsertBB();
     expr->genCode();
      
@@ -486,33 +520,77 @@ void AssignStmt::genCode()
      * If you want to implement array, you have to caculate the address first and then store the result into it.
      */
     new StoreInstruction(addr, src, bb);
+        }
 }
 
 void ExprStmt::genCode(){
     ep->genCode();
 }
 
+void ImplicitCastExpr::genCode(){
+   
+    if(expr){
+        expr->genCode();
+        
+        BasicBlock* bb = builder->getInsertBB();
+        //int2bool
+        if (type == TypeSystem::boolType && ((IntType*)(expr->getType()))->getSize()!=1) {
+             new CmpInstruction(
+            CmpInstruction::NE, this->dst, this->expr->getOperand(),
+            new Operand(new ConstantSymbolEntry(TypeSystem::intType, 0)), bb);
+        }
+
+        //bool2int
+        if(type==TypeSystem::intType && ((IntType*)(expr->getType()))->getSize()!=32){
+            new ZextInstruction(this->dst, expr->getOperand(), bb);
+        }
+    }
+}
 
 //对程序流图进行类型检查
 void Ast::typeCheck()
 {
     if(root != nullptr)
         root->typeCheck();
+    
 }
 
 
 void FunctionDef::typeCheck()
 {
     // Todo
+    //检查函数的返回类型和参数
+
+    //检查语句
+    stmt->typeCheck();
+   
 }
 
 void BinaryExpr::typeCheck()
 {
     // Todo
+    cout<<(op);
+     if(expr1->getType()==TypeSystem::voidType || expr2->getType()==TypeSystem::voidType){
+             fprintf(stderr, "Void type is involved in compution \n");
+        }
+    else if(op==BinaryExpr::AND || op==BinaryExpr::OR){
+     if(((IntType*)(expr1->getType()))->getSize()!=1){
+        expr1=new ImplicitCastExpr(expr1,TypeSystem::boolType);
+        cout<<8<<endl;
+        }
+
+     if(((IntType*)(expr2->getType()))->getSize()!=1){
+        expr2=new ImplicitCastExpr(expr2,TypeSystem::boolType);
+        }
+    }
+    
 }
 
 void UnaryExpr::typeCheck(){
     // Todo
+    if(expr->getType()==TypeSystem::voidType && (op==NOT || op==SUB)){
+             fprintf(stderr, "Void type is involved in compution \n");
+        }
 }
 
 void Constant::typeCheck()
@@ -528,6 +606,15 @@ void Id::typeCheck()
 void IfStmt::typeCheck()
 {
     // Todo
+     cout<<(((IntType*)(cond->getType()))->getSize())<<endl;
+
+    if(((IntType*)(cond->getType()))->getSize()!=1){
+       
+        cond=new ImplicitCastExpr(cond,TypeSystem::boolType);
+        
+    }
+    cond->typeCheck();
+    thenStmt->typeCheck();
 }
 
 void IfElseStmt::typeCheck()
@@ -540,39 +627,56 @@ void WhileStmt::typeCheck(){
 }
 
 void NullStmt::typeCheck(){
-
+    //
 }
 
 void CompoundStmt::typeCheck()
 {
     // Todo
+    if(stmt)
+        stmt->typeCheck();
 }
 
 void SeqNode::typeCheck()
 {
     // Todo
+    if(stmt1)
+        stmt1->typeCheck();
+    if(stmt2)
+        stmt2->typeCheck();
 }
 
 void DeclStmt::typeCheck()
 {
     // Todo
+    //与赋值语句一样，需要类型转换，比如用bool型初始化一个int型，或者用int型初始化一个bool型
 }
 
 void ReturnStmt::typeCheck()
 {
     // Todo
+    //返回类型是否与函数返回一致，不一致的是否能够转换
 }
 
 void AssignStmt::typeCheck()
 {
     // Todo
+    //类型转换，比如用bool型赋值一个int型，或者用int型赋值一个bool型
 }
-void ExprStmt::typeCheck(){
 
+
+void ExprStmt::typeCheck(){
+    if(ep)
+        ep->typeCheck();
 }
 
 void CallExpr::typeCheck(){
+    //检查是否与函数参数的类型相同
+}
 
+void ImplicitCastExpr::typeCheck(){
+    if(expr)
+        expr->typeCheck();
 }
 
 //语法树的输出
@@ -685,6 +789,7 @@ void DeclStmt::output(int level)
 }
 
 void ExprStmt::output(int level){
+     
     fprintf(yyout, "%*cExprStmt\n", level, ' ');
     ep->output(level+4);
 }
@@ -703,12 +808,15 @@ void Constant::output(int level)
 void CompoundStmt::output(int level)
 {
     fprintf(yyout, "%*cCompoundStmt\n", level, ' ');
+    if(stmt)
     stmt->output(level + 4);
 }
 
 void SeqNode::output(int level)
 {
+    if(stmt1)
     stmt1->output(level);
+    if(stmt2)
     stmt2->output(level);
 }
 
@@ -719,15 +827,20 @@ void NullStmt::output(int level){
 void IfStmt::output(int level)
 {
     fprintf(yyout, "%*cIfStmt\n", level, ' ');
+    if(cond)
     cond->output(level + 4);
+    if(thenStmt)
     thenStmt->output(level + 4);
 }
 
 void IfElseStmt::output(int level)
 {
     fprintf(yyout, "%*cIfElseStmt\n", level, ' ');
+    if(cond)
     cond->output(level + 4);
+    if(thenStmt)
     thenStmt->output(level + 4);
+    if(elseStmt)
     elseStmt->output(level + 4);
 }
 
@@ -740,7 +853,9 @@ void ReturnStmt::output(int level)
 void AssignStmt::output(int level)
 {
     fprintf(yyout, "%*cAssignStmt\n", level, ' ');
+    if(lval)
     lval->output(level + 4);
+    if(expr)
     expr->output(level + 4);
    
 }
@@ -749,7 +864,9 @@ void AssignStmt::output(int level)
 
 void WhileStmt::output(int level){
      fprintf(yyout, "%*cWhileStmt\n", level, ' ');
+     if(cond)
      cond->output(level+4);
+     if(stmt)
      stmt->output(level+4);
 }
 
@@ -760,9 +877,7 @@ void FunctionParam::output(int level){
 
 void FunctionDef::output(int level)
 {
-    
     std::string name, type;
-    
     name = se->toStr();
     type = se->getType()->toStr();
 
@@ -784,11 +899,17 @@ void CallExpr::output(int level){
     
     fprintf(yyout, "%*cCallExpr \t function: %s type: %s\n", level, ' ',name.c_str(),type.c_str());
     //输出表达式
+    
     if(epl!=nullptr){
     for(int i=0;i<(int)epl->size();i++){
         (*epl)[i]->output(level+4);
-    }
+        }
     }
      
+}
+
+void ImplicitCastExpr::output(int level){
    
+    if(expr)
+    expr->output(level);
 }

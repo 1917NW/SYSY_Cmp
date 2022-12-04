@@ -78,7 +78,7 @@ private:
     ExprNode * expr;
 public:
     enum{ADD,SUB,NOT};
-    UnaryExpr(SymbolEntry* se,int op,ExprNode* expr):ExprNode(se),op(op),expr(expr){dst = new Operand(se); };
+    UnaryExpr(SymbolEntry* se,int op,ExprNode* expr):ExprNode(se),op(op),expr(expr){dst = new Operand(se);type=se->getType();};
     void output(int level);
     void genCode();
     void typeCheck();
@@ -89,7 +89,7 @@ class CallExpr:public ExprNode{
 private:
     vector<ExprNode*>* epl;
 public:
-    CallExpr(SymbolEntry* se,vector<ExprNode*>* epl):ExprNode(se),epl(epl){SymbolEntry *temp = new TemporarySymbolEntry(((FunctionType*)se->getType())->getRetType(), SymbolTable::getLabel()); dst = new Operand(temp);};
+    CallExpr(SymbolEntry* se,vector<ExprNode*>* epl):ExprNode(se),epl(epl){type=((FunctionType*)se->getType())->getRetType();SymbolEntry *temp = new TemporarySymbolEntry(((FunctionType*)se->getType())->getRetType(), SymbolTable::getLabel()); dst = new Operand(temp);};
     void output(int level);
     void typeCheck();
     void genCode();
@@ -99,7 +99,7 @@ public:
 class Constant : public ExprNode
 {
 public:
-    Constant(SymbolEntry *se) : ExprNode(se){dst = new Operand(se);};
+    Constant(SymbolEntry *se) : ExprNode(se){dst = new Operand(se);type=se->getType();};
     void output(int level);
     void typeCheck();
     void genCode();
@@ -108,12 +108,29 @@ public:
 class Id : public ExprNode
 {
 public:
-    Id(SymbolEntry *se) : ExprNode(se){SymbolEntry *temp = new TemporarySymbolEntry(se->getType(), SymbolTable::getLabel()); dst = new Operand(temp);};
+    Id(SymbolEntry *se) : ExprNode(se){SymbolEntry *temp = new TemporarySymbolEntry(se->getType(), SymbolTable::getLabel()); dst = new Operand(temp);type=se->getType();};
     void output(int level);
     void typeCheck();
     void genCode();
 };
 
+
+//int2bool, bool2int
+class ImplicitCastExpr:public ExprNode{
+private:
+    ExprNode* expr;
+ public:
+    //把表达式节点的类型转换为dstType类型
+    ImplicitCastExpr(ExprNode* expr, Type* dstType)
+        : ExprNode(nullptr), expr(expr) {
+        type = dstType;
+        symbolEntry = new TemporarySymbolEntry(type, SymbolTable::getLabel());
+        dst = new Operand(symbolEntry);
+    };
+    void output(int level);
+    void typeCheck();
+    void genCode();
+};
 
 class StmtNode : public Node
 {};

@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
     yyparse();
     if(dump_ast)
     ast.output();
+    
     //类型检查
     ast.typeCheck();
 
