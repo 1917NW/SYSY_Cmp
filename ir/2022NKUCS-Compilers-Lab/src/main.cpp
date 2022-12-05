@@ -10,6 +10,7 @@ Unit unit;
 extern FILE *yyin;
 extern FILE *yyout;
 extern SymbolTable *sysyTable;
+extern vector<VarDef_entry> globalVarList;
 
 int yyparse();
 
@@ -66,10 +67,24 @@ int main(int argc, char *argv[])
     //类型检查
     ast.typeCheck();
 
+
+
     //生成程序流图
     ast.genCode(&unit);
 
 
+    for(auto globalVar:globalVarList){
+        string name;
+        IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(globalVar.id->getSymPtr());
+        name=se->toStr();
+        string value="0";
+        if(globalVar.ep){
+        value=globalVar.ep->getOperand()->toStr();
+        }
+        
+        string type="i32";
+        fprintf(yyout,"%s = global %s %s, align 4\n",name.c_str(),type.c_str(),value.c_str());
+    }
     //根据程序流图生成中间代码
     if(dump_ir)
         unit.output();

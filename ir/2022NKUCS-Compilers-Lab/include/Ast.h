@@ -40,15 +40,20 @@ public:
 class ExprNode : public Node
 {
 protected:
+    int kind;
+    enum{BIN,UN,OT};
     SymbolEntry *symbolEntry;
-    Operand *dst;   // The result of the subtree is stored into dst.
+      // The result of the subtree is stored into dst.
     //表达式类型
     Type* type;
 public:
-    ExprNode(SymbolEntry *symbolEntry) : symbolEntry(symbolEntry){};
+    Operand *dst; 
+    ExprNode(SymbolEntry *symbolEntry) : symbolEntry(symbolEntry){kind=BIN;};
     Operand* getOperand() {return dst;};
     SymbolEntry* getSymPtr() {return symbolEntry;};
     virtual Type* getType(){return type;}
+    virtual int getValue(){return 0;}
+   
 };
 
 class BinaryExpr : public ExprNode
@@ -66,6 +71,7 @@ public:
         type=TypeSystem::intType;
        }
        SymbolEntry *temp = new TemporarySymbolEntry(type, SymbolTable::getLabel()); dst = new Operand(temp);
+       kind=BIN;
         };
     void output(int level);
     void typeCheck();
@@ -79,7 +85,14 @@ private:
     ExprNode * expr;
 public:
     enum{ADD,SUB,NOT};
-    UnaryExpr(SymbolEntry* se,int op,ExprNode* expr):ExprNode(se),op(op),expr(expr){dst = new Operand(se);type=se->getType();};
+    UnaryExpr(SymbolEntry* se,int op,ExprNode* expr):ExprNode(se),op(op),expr(expr){kind=UN;
+        if(op==NOT){
+            type=TypeSystem::boolType;
+        }
+        else
+            type=TypeSystem::intType;
+        SymbolEntry *temp = new TemporarySymbolEntry(type, SymbolTable::getLabel()); dst = new Operand(temp);
+    };
     void output(int level);
     void genCode();
     void typeCheck();
@@ -100,10 +113,13 @@ public:
 class Constant : public ExprNode
 {
 public:
+    int value=0;
     Constant(SymbolEntry *se) : ExprNode(se){dst = new Operand(se);type=se->getType();};
+    Constant(SymbolEntry *se,int value) : ExprNode(se),value(value){dst = new Operand(se);type=se->getType();};
     void output(int level);
     void typeCheck();
     void genCode();
+    int getValue(){return value;}
 };
 
 class Id : public ExprNode

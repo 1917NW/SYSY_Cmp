@@ -39,7 +39,24 @@ void Function::output() const
 {
     FunctionType* funcType = dynamic_cast<FunctionType*>(sym_ptr->getType());
     Type *retType = funcType->getRetType();
-    fprintf(yyout, "define %s %s() {\n", retType->toStr().c_str(), sym_ptr->toStr().c_str());
+    std::string fparamType=funcType->paramsToStr();
+    std::vector<SymbolEntry*> paramsSe = funcType->getParamsSe();
+    //fprintf(yyout, "define %s %s(%s) {\n", retType->toStr().c_str(), sym_ptr->toStr().c_str(),fparamType.c_str());
+   
+    if (!paramsSe.size())
+        fprintf(yyout, "define %s %s() {\n", retType->toStr().c_str(),
+                sym_ptr->toStr().c_str());
+    else {
+        fprintf(yyout, "define %s %s(", retType->toStr().c_str(),
+                sym_ptr->toStr().c_str());
+        for (long unsigned int i = 0; i < paramsSe.size(); i++) {
+            if (i)
+                fprintf(yyout, ", ");
+            fprintf(yyout, "%s %s", paramsSe[i]->getType()->toStr().c_str(),
+                    paramsSe[i]->toStr().c_str());
+        }
+        fprintf(yyout, ") {\n");
+    }
 
     //基本块集合
     std::set<BasicBlock *> v;

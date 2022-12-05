@@ -79,6 +79,7 @@ private:
     std::string name;
     int scope;
     Operand *addr;  // The address of the identifier.
+    int paramNum;
     // You can add any field you need here.
 
 public:

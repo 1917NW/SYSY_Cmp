@@ -15,6 +15,7 @@ ConstantSymbolEntry::ConstantSymbolEntry(Type *type, int value) : SymbolEntry(ty
 
 std::string ConstantSymbolEntry::toStr()
 {
+
     std::ostringstream buffer;
     buffer << value;
     return buffer.str();

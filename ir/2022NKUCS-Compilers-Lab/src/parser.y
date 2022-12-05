@@ -8,6 +8,9 @@
     Type* Var_type;
     bool isConst=false;
     vector<Type*>* NowFuncParamsType;
+    vector<VarDef_entry> globalVarList;
+    Type* nowFunctionType;
+    vector<FunctionParam> * nowFunctionParams;
     int yylex();
     int yyerror( char const * );
 }
@@ -144,6 +147,7 @@ ReturnStmt
     :
     RETURN Exp SEMICOLON{
         $$ = new ReturnStmt($2);
+        
     }
     ;
 Exp
@@ -181,7 +185,7 @@ PrimaryExp
     }
     | INTEGER {
         SymbolEntry *se = new ConstantSymbolEntry(TypeSystem::intType, $1);
-        $$ = new Constant(se);
+        $$ = new Constant(se,$1);
     }
     |LPAREN Exp RPAREN
     {
@@ -401,6 +405,7 @@ FuncFParam:
        
         SymbolEntry *se;
         se=new IdentifierSymbolEntry(Var_type,$2,identifiers->getLevel());
+        
 
         //把函数形参名放入到符号表链的第二个符号表中
         identifiers->install($2,se);
@@ -436,7 +441,7 @@ FuncDef
     Type ID {
         Type *funcType;
         funcType = new FunctionType($1,{});
-
+        nowFunctionType=funcType;
         //获取当前函数的形参列表
         NowFuncParamsType=((FunctionType*)funcType)->GetParamsType();
         SymbolEntry *se = new IdentifierSymbolEntry(funcType, $2, identifiers->getLevel(),SymbolEntry::FUNC);
@@ -453,8 +458,18 @@ FuncDef
         SymbolEntry *se;
         se = identifiers->lookup($2);
         assert(se != nullptr);
-
-        
+        std::vector<SymbolEntry*> paramsSe;
+       
+        if($5!=nullptr){
+        if((*$5).size()){
+             for(auto i:(*$5)){
+                paramsSe.push_back(i.id->getSymPtr());
+              
+            }
+        }
+        }
+       ((FunctionType*)nowFunctionType)->setParmaSe(paramsSe);
+       
         //函数语句节点
         //FunctionDef包含函数原型se,$5函数形参列表，$7语句块
         $$ = new FunctionDef(se, $7,$5);
