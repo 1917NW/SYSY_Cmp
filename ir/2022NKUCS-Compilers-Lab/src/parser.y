@@ -406,7 +406,7 @@ FuncFParam:
         SymbolEntry *se;
         se=new IdentifierSymbolEntry(Var_type,$2,identifiers->getLevel());
         
-
+        ((IdentifierSymbolEntry*)se)->setParamNum(SymbolTable::getLabel());
         //把函数形参名放入到符号表链的第二个符号表中
         identifiers->install($2,se);
 

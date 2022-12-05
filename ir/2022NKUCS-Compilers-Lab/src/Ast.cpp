@@ -78,7 +78,8 @@ void FunctionDef::genCode()
         entry->insertFront(alloca);                                 // allocate instructions should be inserted into the begin of the entry block.
         se->setAddr(addr); 
 
-        Operand* temp=se->getAddr();
+        //Operand* temp=se->getAddr();
+
         new StoreInstruction(addr,param,entry);
 
     }
@@ -617,8 +618,15 @@ void BinaryExpr::typeCheck()
         expr2=new ImplicitCastExpr(expr2,TypeSystem::boolType);
     }
     }
+
+    if(expr1->getType()==TypeSystem::intType && expr2->getType()==TypeSystem::boolType){
+        expr2=new ImplicitCastExpr(expr2,TypeSystem::intType);
+    }
+    if(expr1->getType()==TypeSystem::boolType && expr2->getType()==TypeSystem::intType){
+        expr1=new ImplicitCastExpr(expr1,TypeSystem::intType);
+    }
     expr1->typeCheck();
-     expr2->typeCheck();
+    expr2->typeCheck();
 }
 
 void UnaryExpr::typeCheck(){

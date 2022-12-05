@@ -34,6 +34,11 @@ IdentifierSymbolEntry::IdentifierSymbolEntry(Type *type, std::string name, int s
 }
 std::string IdentifierSymbolEntry::toStr()
 {
+    if(isParam()){
+        std::ostringstream buffer;
+         buffer << "%t" << paramNum;
+          return buffer.str();
+    }
     return "@" + name;
 }
 

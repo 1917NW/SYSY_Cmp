@@ -79,7 +79,7 @@ private:
     std::string name;
     int scope;
     Operand *addr;  // The address of the identifier.
-    int paramNum;
+    int paramNum=-1;
     // You can add any field you need here.
 
 public:
@@ -87,6 +87,9 @@ public:
     IdentifierSymbolEntry(Type *type, std::string name, int scope,int kind);
     virtual ~IdentifierSymbolEntry() {};
     std::string toStr();
+    void setParamNum(int paramNum){this->paramNum=paramNum;}
+    
+    int getParamNum(){return paramNum;}
     bool isGlobal() const {return scope == GLOBAL;};
     bool isParam() const {return scope == PARAM;};
     bool isLocal() const {return scope >= LOCAL;};
