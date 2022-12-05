@@ -40,20 +40,19 @@ void Function::output() const
     FunctionType* funcType = dynamic_cast<FunctionType*>(sym_ptr->getType());
     Type *retType = funcType->getRetType();
     std::string fparamType=funcType->paramsToStr();
-    std::vector<SymbolEntry*> paramsSe = funcType->getParamsSe();
-    //fprintf(yyout, "define %s %s(%s) {\n", retType->toStr().c_str(), sym_ptr->toStr().c_str(),fparamType.c_str());
+    std::vector<SymbolEntry*> params = funcType->getParamsSe();
    
-    if (!paramsSe.size())
+    if (!params.size())
         fprintf(yyout, "define %s %s() {\n", retType->toStr().c_str(),
                 sym_ptr->toStr().c_str());
     else {
         fprintf(yyout, "define %s %s(", retType->toStr().c_str(),
                 sym_ptr->toStr().c_str());
-        for (long unsigned int i = 0; i < paramsSe.size(); i++) {
+        for (long unsigned int i = 0; i < params.size(); i++) {
             if (i)
                 fprintf(yyout, ", ");
-            fprintf(yyout, "%s %s", paramsSe[i]->getType()->toStr().c_str(),
-                    paramsSe[i]->toStr().c_str());
+            fprintf(yyout, "%s %s", params[i]->getType()->toStr().c_str(),
+                    params[i]->toStr().c_str());
         }
         fprintf(yyout, ") {\n");
     }

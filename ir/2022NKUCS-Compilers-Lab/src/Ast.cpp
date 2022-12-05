@@ -606,6 +606,8 @@ void FunctionDef::typeCheck()
 void BinaryExpr::typeCheck()
 {
     // Todo
+     expr1->typeCheck();
+    expr2->typeCheck();
      if(expr1->getType()==TypeSystem::voidType || expr2->getType()==TypeSystem::voidType){
              fprintf(stderr, "Void type is involved in compution \n");
         }
@@ -625,8 +627,7 @@ void BinaryExpr::typeCheck()
     if(expr1->getType()==TypeSystem::boolType && expr2->getType()==TypeSystem::intType){
         expr1=new ImplicitCastExpr(expr1,TypeSystem::intType);
     }
-    expr1->typeCheck();
-    expr2->typeCheck();
+   
 }
 
 void UnaryExpr::typeCheck(){
@@ -665,28 +666,26 @@ void Id::typeCheck()
 void IfStmt::typeCheck()
 {
     // Todo
-
+    cond->typeCheck();
     if(((IntType*)(cond->getType()))->getSize()!=1){
         cond=new ImplicitCastExpr(cond,TypeSystem::boolType);
       
-        cout<<3<<endl;
     }
-    cond->typeCheck();
+   
     thenStmt->typeCheck();
 }
 
 void IfElseStmt::typeCheck()
 {
     // Todo
-
+  cond->typeCheck();
     if(((IntType*)(cond->getType()))->getSize()!=1){
        ExprNode* temp=cond;
         cond=new ImplicitCastExpr(temp,TypeSystem::boolType);
         
-        cout<<temp->getOperand()->toStr()<<endl;
-        cout<<7<<endl;
+       
     }
-    cond->typeCheck();
+  
     thenStmt->typeCheck();
     elseStmt->typeCheck();
 }
@@ -694,12 +693,13 @@ void IfElseStmt::typeCheck()
 void WhileStmt::typeCheck(){
     // Todo
 
+    cond->typeCheck();
     if(((IntType*)(cond->getType()))->getSize()!=1){
        
         cond=new ImplicitCastExpr(cond,TypeSystem::boolType);
     }
 
-    cond->typeCheck();
+    
     stmt->typeCheck();
 }
 
@@ -766,13 +766,14 @@ void AssignStmt::typeCheck()
 {
     // Todo
     //类型转换，比如用bool型赋值一个int型，或者用int型赋值一个bool型
+    expr->typeCheck();
     if(lval->getType()==TypeSystem::intType && expr->getType()==TypeSystem::boolType){
         expr=new ImplicitCastExpr(expr,TypeSystem::intType);
     }
     if(lval->getType()==TypeSystem::boolType && expr->getType()==TypeSystem::intType){
         expr=new ImplicitCastExpr(expr,TypeSystem::boolType);
     }
-    expr->typeCheck();
+    
 }
 
 
@@ -787,11 +788,11 @@ void CallExpr::typeCheck(){
     
     vector<Type*>* params=((FunctionType*)(this->getSymPtr()->getType()))->GetParamsType();
     if(epl!=nullptr){
-        cout<<"call"<<endl;
         if((*epl).size()!= (*params).size())
             cout<<"num not match!"<<endl;
         else{
            for(int i=0;i<(int)(*epl).size();i++){
+            (*epl)[i]->typeCheck();
             if((*params)[i]==TypeSystem::intType && (*epl)[i]->getType()==TypeSystem::boolType)
                 {
                      (*epl)[i]=new ImplicitCastExpr( (*epl)[i],TypeSystem::intType);

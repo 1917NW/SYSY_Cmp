@@ -326,9 +326,8 @@ void StoreInstruction::output() const
     std::string dst_type = operands[0]->getType()->toStr();
     std::string src_type = operands[1]->getType()->toStr();
 
-    std::cout<<3<<std::endl;
     fprintf(yyout, "  store %s %s, %s %s, align 4\n", src_type.c_str(), src.c_str(), dst_type.c_str(), dst.c_str());
-    printf("  store %s %s, %s %s, align 4\n", src_type.c_str(), src.c_str(), dst_type.c_str(), dst.c_str());
+    
 }
 
 
@@ -353,7 +352,7 @@ void ZextInstruction::output() const {
     Operand* dst = operands[0];
     Operand* src = operands[1];
 
-    std::cout<< src->getType()->toStr()<<std::endl;
+    
     fprintf(yyout, "  %s = zext %s %s to i32\n", dst->toStr().c_str(),
             src->getType()->toStr().c_str(), src->toStr().c_str());
 }
@@ -410,7 +409,7 @@ void CallInstruction::output() const {
     fprintf(yyout, "call %s %s(", type->getRetType()->toStr().c_str(),
             func->toStr().c_str());
 
-    for (long unsigned int i = 1; i < operands.size(); i++) {
+    for (unsigned int i = 1; i < operands.size(); i++) {
         if (i != 1)
             fprintf(yyout, ", ");
         fprintf(yyout, "%s %s", operands[i]->getType()->toStr().c_str(),
