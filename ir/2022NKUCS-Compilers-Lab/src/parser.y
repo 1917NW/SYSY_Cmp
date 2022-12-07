@@ -11,6 +11,8 @@
     vector<VarDef_entry> globalVarList;
     Type* nowFunctionType;
     vector<FunctionParam> * nowFunctionParams;
+    SymbolEntry * overloadfunction;
+    bool isOnly=true;
     int yylex();
     int yyerror( char const * );
 }
@@ -439,6 +441,7 @@ FuncFParams
 FuncDef
     :
     Type ID {
+        isOnly=true;
         Type *funcType;
         funcType = new FunctionType($1,{});
         nowFunctionType=funcType;
@@ -447,7 +450,14 @@ FuncDef
         SymbolEntry *se = new IdentifierSymbolEntry(funcType, $2, identifiers->getLevel(),SymbolEntry::FUNC);
 
         //把函数名放到符号表链的第一个符号表中
+        SymbolEntry *s;
+        s = identifiers->lookup($2);
+        if(s==nullptr)
         identifiers->install($2, se);
+        else{
+        isOnly=false;
+        overloadfunction=se;
+        }
 
         //进入符号表链中的第二个符号表
         identifiers = new SymbolTable(identifiers);
@@ -455,16 +465,17 @@ FuncDef
     LPAREN FuncFParams RPAREN
     BlockStmt
     {
+
         SymbolEntry *se;
         se = identifiers->lookup($2);
         assert(se != nullptr);
+
+        //构建FunctionType中函数形参类型的se
         std::vector<SymbolEntry*> paramsSe;
-       
         if($5!=nullptr){
         if((*$5).size()){
              for(auto i:(*$5)){
                 paramsSe.push_back(i.id->getSymPtr());
-              
             }
         }
         }
@@ -472,8 +483,32 @@ FuncDef
        
         //函数语句节点
         //FunctionDef包含函数原型se,$5函数形参列表，$7语句块
+        if(isOnly==true)
         $$ = new FunctionDef(se, $7,$5);
 
+        //与其函数进行比较，因为函数形参只支持int类型，所以只需要比较重载函数形参的个数即可
+        
+        SymbolEntry *last_se;
+        int i=1;
+        if(isOnly==false){
+            cout<<"test overload"<<endl;
+            while(se){
+                vector<SymbolEntry*> pSe=((FunctionType*)(se->getType()))->getParamsSe();
+                cout<<i++<<endl;
+                if(pSe.size()==paramsSe.size()){
+                    cout<<"function overload failed"<<endl;
+                    break;
+                }
+                last_se=se;
+                se=dynamic_cast<IdentifierSymbolEntry*>(se)->getNext();
+            }
+            if(se==nullptr){
+                dynamic_cast<IdentifierSymbolEntry*>(last_se)->setNext(dynamic_cast<IdentifierSymbolEntry*>(overloadfunction));
+                cout<<"function overload success"<<endl;
+                $$ = new FunctionDef(overloadfunction, $7,$5);
+            }
+        }
+        
         //删除符号表链中第二个符号表
         SymbolTable *top = identifiers;
         identifiers = identifiers->getPrev();

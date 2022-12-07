@@ -56,7 +56,7 @@ void FunctionDef::genCode()
 {
     Unit *unit = builder->getUnit();
     Function *func = new Function(unit, se);
-
+   
     if(functionParams!=nullptr){
     for(auto& i:(*functionParams)){
        
@@ -124,28 +124,31 @@ void FunctionDef::genCode()
             }
 
 }
-      for (auto it = func->begin(); it != func->end(); it++) {
-        auto block = *it;
-        bool flag = false;
+    //删除一个块内ret后面的指令以及块
+      for (auto b = func->begin(); b != func->end(); b++) {
+        auto block = *b;
+        bool hasRet = false;
+        //遍历一个函数内所有块，把块中ret语句后面的所有指令删除
         for (auto i = block->begin(); i != block->end(); i = i->getNext()) {
-            if (flag) {
+            if (hasRet) {
                 block->remove(i);
                 delete i;
                 continue;
             }
             if (i->isRet())
-                flag = true;
+                hasRet = true;
         }
-        if (flag) {
+        //把ret后面所有的块都删除
+        if (hasRet) {
             while (block->succ_begin() != block->succ_end()) {
-                auto b = *(block->succ_begin());
-                block->removeSucc(b);
-                b->removePred(block);
+                auto rb = *(block->succ_begin());
+                block->removeSucc(rb);
+                rb->removePred(block);
             }
         }
     }
 }
-    // 如果已经有ret了，删除后面的指令
+  
    
     
    
@@ -784,13 +787,31 @@ void ExprStmt::typeCheck(){
 
 void CallExpr::typeCheck(){
     //检查是否与函数参数的类型相同
-
+    int paramNum;
+    if(epl==nullptr)
+        paramNum=0;
+    else
+        paramNum=(*epl).size();
+   
+    SymbolEntry* se=this->getSymPtr();
     
-    vector<Type*>* params=((FunctionType*)(this->getSymPtr()->getType()))->GetParamsType();
-    if(epl!=nullptr){
-        if((*epl).size()!= (*params).size())
-            cout<<"num not match!"<<endl;
-        else{
+    while(se){
+        vector<Type*>* pSe=((FunctionType*)(se->getType()))->GetParamsType();
+        int size;
+        if(pSe==nullptr)
+            size=0;
+        else    
+            size=(int)((*pSe).size());
+        if(size==paramNum)
+            break;
+        se=dynamic_cast<IdentifierSymbolEntry*>(se)->getNext();
+    }
+    if(se==nullptr){
+        cout<<"num of arguments does not match!"<<endl;
+    }
+    else if(epl){
+    vector<Type*>* params=((FunctionType*)(se->getType()))->GetParamsType();
+      
            for(int i=0;i<(int)(*epl).size();i++){
             (*epl)[i]->typeCheck();
             if((*params)[i]==TypeSystem::intType && (*epl)[i]->getType()==TypeSystem::boolType)
@@ -798,13 +819,10 @@ void CallExpr::typeCheck(){
                      (*epl)[i]=new ImplicitCastExpr( (*epl)[i],TypeSystem::intType);
                 }
            }
-        }
-    }
-    else{
-        if((*params).size()!=0)
-        cout<<"not match!"<<endl;
+            
     }
 }
+
 
 void ImplicitCastExpr::typeCheck(){
     if(expr)

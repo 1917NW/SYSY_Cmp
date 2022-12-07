@@ -41,7 +41,6 @@ void Function::output() const
     Type *retType = funcType->getRetType();
     std::string fparamType=funcType->paramsToStr();
     std::vector<SymbolEntry*> params = funcType->getParamsSe();
-   
     if (!params.size())
         fprintf(yyout, "define %s %s() {\n", retType->toStr().c_str(),
                 sym_ptr->toStr().c_str());
