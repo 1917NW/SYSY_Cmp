@@ -5,6 +5,7 @@
 #include "IRBuilder.h"
 #include <string>
 #include "Type.h"
+#include<list>
 
 extern FILE *yyout;
 extern vector<VarDef_entry> globalVarList;
@@ -124,6 +125,8 @@ void FunctionDef::genCode()
             }
 
 }
+        //遍历所有语句块，如果搜索所有没有跳转指令的块
+       
     //删除一个块内ret后面的指令以及块
       for (auto b = func->begin(); b != func->end(); b++) {
         auto block = *b;
@@ -147,6 +150,36 @@ void FunctionDef::genCode()
             }
         }
     }
+
+    list<BasicBlock *> q;
+    std::set<BasicBlock *> v;
+    v.insert(entry);
+    q.push_back(func->getEntry());
+    while (!q.empty())
+    {
+        
+        auto bb = q.front();
+        q.pop_front();
+        Instruction* last_i=(bb)->rbegin();
+        if(last_i->isCond()||last_i->isUncond()||last_i->isRet())
+            ;
+        else
+            {
+                if(!(((FunctionType*)(se->getType()))->getRetType()==TypeSystem::voidType))
+                    cout<<"basicblock has no branch stmt or ret stmt"<<endl;
+            }
+        //广度优先遍历
+        for (auto succ = bb->succ_begin(); succ != bb->succ_end(); succ++)
+        {
+            //如果没有访问过程序流图中的此节点，则把该节点放入到队列中
+            if (v.find(*succ) == v.end())
+            {
+                v.insert(*succ);
+                q.push_back(*succ);
+            }
+        }
+    }
+    
 }
   
    
@@ -609,8 +642,10 @@ void FunctionDef::typeCheck()
 void BinaryExpr::typeCheck()
 {
     // Todo
+   
      expr1->typeCheck();
     expr2->typeCheck();
+    
      if(expr1->getType()==TypeSystem::voidType || expr2->getType()==TypeSystem::voidType){
              fprintf(stderr, "Void type is involved in compution \n");
         }
@@ -755,12 +790,15 @@ void ReturnStmt::typeCheck()
 {
     
     // Todo
-    //返回类型是否与函数返回一致，不一致的是否能够转换
+    //返回类型是否与函数返回类型一致，不一致的是否能够转换
+    if(retValue){
     if(retValue->getType()!=TypeSystem::voidType && nowFucntionRetType==TypeSystem::voidType){
             cout<<"Wrong Function! return non-void type"<<endl;
     }
     else if(nowFucntionRetType==TypeSystem::intType && retValue->getType()==TypeSystem::boolType){
         retValue=new ImplicitCastExpr(retValue,TypeSystem::intType);
+    }
+    retValue->typeCheck();
     }
    
 }
@@ -787,12 +825,16 @@ void ExprStmt::typeCheck(){
 
 void CallExpr::typeCheck(){
     //检查是否与函数参数的类型相同
+  
+   
     int paramNum;
     if(epl==nullptr)
         paramNum=0;
     else
         paramNum=(*epl).size();
-   
+
+  
+
     SymbolEntry* se=this->getSymPtr();
     
     while(se){
@@ -806,12 +848,14 @@ void CallExpr::typeCheck(){
             break;
         se=dynamic_cast<IdentifierSymbolEntry*>(se)->getNext();
     }
+
     if(se==nullptr){
         cout<<"num of arguments does not match!"<<endl;
     }
+
     else if(epl){
     vector<Type*>* params=((FunctionType*)(se->getType()))->GetParamsType();
-      
+      this->type=((FunctionType*)(se->getType()))->getRetType();
            for(int i=0;i<(int)(*epl).size();i++){
             (*epl)[i]->typeCheck();
             if((*params)[i]==TypeSystem::intType && (*epl)[i]->getType()==TypeSystem::boolType)
@@ -819,7 +863,6 @@ void CallExpr::typeCheck(){
                      (*epl)[i]=new ImplicitCastExpr( (*epl)[i],TypeSystem::intType);
                 }
            }
-            
     }
 }
 

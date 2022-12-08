@@ -151,6 +151,9 @@ ReturnStmt
         $$ = new ReturnStmt($2);
         
     }
+    |RETURN SEMICOLON{
+        $$ = new ReturnStmt(nullptr);
+    }
     ;
 Exp
     :
@@ -174,7 +177,9 @@ CallExp:
         se=identifiers->lookup_top($1);
 
         if(se!=nullptr && se->isFunc())
-        $$=new CallExpr(se,$3);
+            {
+                $$=new CallExpr(se,$3);
+            }
         else 
         fprintf(stderr, "function \"%s\" is undefined\n", (char*)$1);
         
@@ -348,11 +353,17 @@ VarDef
         }
         }
     |ID ASSIGN Exp {
+         if(identifiers->lookup_now($1)){
+             fprintf(stderr, "identifier \"%s\" is already defined\n", (char*)$1);
+        }
+        else{
         SymbolEntry *se;
         se = new IdentifierSymbolEntry(Var_type, $1, identifiers->getLevel());
         identifiers->install($1, se);
         $$=new VarDef_entry(new Id(se),$3);
+        }
         delete []$1;
+        
     }
     ;
 
