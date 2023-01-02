@@ -1,0 +1,3 @@
+int set_a(int val) { return val; }
+int set_b(int val) { return val; }
+int set_d(int val) {  return val; }
