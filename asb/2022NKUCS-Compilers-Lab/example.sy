@@ -1,3 +1,5 @@
-int set_a(int val) { return val; }
-int set_b(int val) { return val; }
-int set_d(int val) {  return val; }
+int main(){
+
+if (1 < 8 != 7 % 2) { putch(67); }
+return 3;
+}

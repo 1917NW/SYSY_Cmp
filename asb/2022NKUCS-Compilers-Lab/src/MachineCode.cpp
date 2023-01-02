@@ -496,6 +496,7 @@ void MachineFunction::output()
     fprintf(yyout, "\t.global %s\n", func_name);
     fprintf(yyout, "\t.type %s , %%function\n", func_name);
     fprintf(yyout, "%s:\n", func_name);
+
     // TODO
     /* Hint:
     *  1. Save fp
@@ -544,7 +545,10 @@ void MachineFunction::output()
         fprintf(yyout, ".L%d:\n", block_list[i]->getNo());
         block_list[i]->output();
     }
+   
+    
 }
+
 
 void MachineUnit::PrintGlobalDecl()
 {
@@ -595,8 +599,9 @@ void MachineUnit::output()
     fprintf(yyout, "\t.arm\n");
     PrintGlobalDecl();
     fprintf(yyout, "\t.text\n");
-    for(auto iter : func_list)
+    for(auto iter : func_list){
         iter->output();
+    }
     for (auto s : globalVarList) {
       IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(s.id->getSymPtr());
         fprintf(yyout, "addr_%s:\n", se->toStr().c_str());

@@ -67,6 +67,7 @@ protected:
     void addUse(MachineOperand* ope) { use_list.push_back(ope); };
     // Print execution code after printing opcode
     void PrintCond();
+    
     enum instType { BINARY, LOAD, STORE, MOV, BRANCH, CMP, STACK };
 public:
     enum condType { EQ, NE, LT, LE , GT, GE, NONE };
@@ -173,6 +174,7 @@ public:
     std::vector<MachineInstruction*>::iterator end() { return inst_list.end(); };
     std::vector<MachineInstruction*>::reverse_iterator rbegin() { return inst_list.rbegin(); };
     std::vector<MachineInstruction*>::reverse_iterator rend() { return inst_list.rend(); };
+   
 
     MachineBlock(MachineFunction* p, int no) { this->parent = p; this->no = no; };
     void InsertInst(MachineInstruction* inst) { this->inst_list.push_back(inst); };
@@ -199,6 +201,7 @@ public:
     std::vector<MachineBlock*>::iterator begin() { return block_list.begin(); };
     std::vector<MachineBlock*>::iterator end() { return block_list.end(); };
     MachineFunction(MachineUnit* p, SymbolEntry* sym_ptr);
+
     /* HINT:
     * Alloc stack space for local variable;
     * return current frame offset ;

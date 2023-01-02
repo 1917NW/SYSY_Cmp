@@ -6,6 +6,7 @@
 extern FILE* yyout;
 int nowCmpCond=-1;
 Operand* RetRes;
+Operand* CmpRes;
 Instruction::Instruction(unsigned instType, BasicBlock *insert_bb)
 {
     prev = next = this;
@@ -650,9 +651,19 @@ void BinaryInstruction::genMachineCode(AsmBuilder* builder)
 void CmpInstruction::genMachineCode(AsmBuilder* builder)
 {
     // TODO
+    CmpRes=operands[0];
     auto cur_block = builder->getBlock();
-    auto src1 = genMachineOperand(operands[1]);
-    auto src2 = genMachineOperand(operands[2]);
+    MachineOperand* src1;
+    MachineOperand* src2;
+    if(operands[1]==RetRes)
+        src1=genMachineReg(0);
+    else
+    src1 = genMachineOperand(operands[1]);
+
+   if(operands[2]==RetRes)
+        src2=genMachineReg(0);
+    else
+    src2 = genMachineOperand(operands[2]);
     MachineInstruction* cur_inst = nullptr;
     if(src1->isImm())
     {
@@ -769,10 +780,35 @@ void ZextInstruction::genMachineCode(AsmBuilder* builder){
     //TODO
     auto cur_block = builder->getBlock();
     auto dst = genMachineOperand(operands[0]);
-    auto src = genMachineOperand(operands[1]);
-    auto cur_inst =
+    MachineOperand* src;
+    MachineInstruction* cur_inst;
+    if(operands[1]==CmpRes){
+        src=genMachineImm(1);
+        cur_inst =
+        new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src,nowCmpCond);
+        cur_block->InsertInst(cur_inst);
+        if(nowCmpCond==CmpInstruction::E)
+            nowCmpCond=CmpInstruction::NE;
+        else if(nowCmpCond==CmpInstruction::NE)
+            nowCmpCond=CmpInstruction::E;
+        if(nowCmpCond==CmpInstruction::L)
+            nowCmpCond=CmpInstruction::GE;
+        else if(nowCmpCond==CmpInstruction::GE)
+            nowCmpCond=CmpInstruction::L;
+        if(nowCmpCond==CmpInstruction::G)
+            nowCmpCond=CmpInstruction::LE;
+        else if(nowCmpCond==CmpInstruction::LE)
+            nowCmpCond=CmpInstruction::G;
+        src=genMachineImm(0);
+        cur_inst =new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src,nowCmpCond);
+        cur_block->InsertInst(cur_inst);
+    }
+    else{
+     src = genMachineOperand(operands[1]);
+     cur_inst =
         new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src);
     cur_block->InsertInst(cur_inst);
+    }
 }
 
 void XorInstruction::genMachineCode(AsmBuilder* builder){
