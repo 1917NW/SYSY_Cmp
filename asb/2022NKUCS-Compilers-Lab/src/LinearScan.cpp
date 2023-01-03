@@ -7,6 +7,7 @@ using namespace std;
 LinearScan::LinearScan(MachineUnit *unit)
 {
     this->unit = unit;
+    //物理寄存器
     for (int i = 4; i < 11; i++)
         regs.push_back(i);
 }
@@ -68,6 +69,7 @@ void LinearScan::makeDuChains()
     }
 }
 
+//计算活跃区间
 void LinearScan::computeLiveIntervals()
 {
     makeDuChains();
@@ -160,28 +162,39 @@ void LinearScan::computeLiveIntervals()
     sort(intervals.begin(), intervals.end(), compareStart);
 }
 
+//单向遍历
 bool LinearScan::linearScanRegisterAllocation()
 {
     // Todo
     bool success = true;
     active.clear();
     regs.clear();
+    //重置寄存器
     for (int i = 4; i < 11; i++)
         regs.push_back(i);
      for (auto& i : intervals) {
+        //回收寄存器
         expireOldIntervals(i);
-       
-            if (!i->fpu) {
-                i->rreg = regs.front();
-                regs.erase(regs.begin());
-            } 
+
+        //如果所有寄存器都被占用
+        if(regs.empty()){
+            //做溢出处理
+            spillAtInterval(i);
+            success=false;
+        }
+        //否则，分配寄存器，并插入到active中
+        else{
+            i->rreg = regs.front();
+            regs.erase(regs.begin());
+         
             active.push_back(i);
             sort(active.begin(), active.end(), compareEnd);
-        
+        }
     }
     return success;
 }
 
+//把机器码中的虚拟寄存器修改为实际寄存器
 void LinearScan::modifyCode()
 {
     for (auto &interval : intervals)
@@ -206,86 +219,71 @@ void LinearScan::genSpillCode()
          * 1. insert ldr inst before the use of vreg
          * 2. insert str inst after the def of vreg
          */ 
+        //设置该变量在栈中的偏移量
         interval->disp = -func->AllocSpace(4);
         auto off = new MachineOperand(MachineOperand::IMM, interval->disp);
         auto fp = new MachineOperand(MachineOperand::REG, 11);
+        LoadMInstruction* insert_load;
         for (auto use : interval->uses) {
-            auto temp = new MachineOperand(*use);
-            MachineOperand* operand = nullptr;
+            auto dst = new MachineOperand(*use);
             if (interval->disp > 255 || interval->disp < -255) {
-                operand = new MachineOperand(MachineOperand::VREG,
-                                             SymbolTable::getLabel());
-                auto inst1 =
-                    new LoadMInstruction(use->getParent()->getParent(),
-                                          operand, off);
-                use->getParent()->insertBefore(inst1);
-            }
-            if (operand) {
-                auto inst = new LoadMInstruction(
-                        use->getParent()->getParent(), 
-                        temp, fp, new MachineOperand(*operand));
-                    use->getParent()->insertBefore(inst);
+                //如果偏移量大于255或者小于-255
+                //则生成 load new_v Imm
+                //      load now_v [fp, new_v]
+                auto operand = new MachineOperand(MachineOperand::VREG, SymbolTable::getLabel());
+                auto Imm_load =new LoadMInstruction(use->getParent()->getParent(), operand, off);
+                use->getParent()->insertBefore(Imm_load);
+                insert_load = new LoadMInstruction(use->getParent()->getParent(), dst, fp, new MachineOperand(*operand));
             }
             else{
-              auto inst = new LoadMInstruction(
-                        use->getParent()->getParent(), 
-                        temp, fp, off);
-                    use->getParent()->insertBefore(inst);
+                //否则直接生成
+                //load now_v [fp, #num]
+                insert_load = new LoadMInstruction(use->getParent()->getParent(), dst, fp, off);
             }
-    }
-    for (auto def : interval->defs) {
-            auto temp = new MachineOperand(*def);
-            MachineOperand* operand = nullptr;
-            MachineInstruction *inst1 = nullptr, *inst = nullptr;
+            use->getParent()->insertBefore(insert_load);
+        }
+
+        for (auto def : interval->defs) { 
+            auto src = new MachineOperand(*def);
+            StoreMInstruction* insert_str;
             if (interval->disp > 255 || interval->disp < -255) {
-                operand = new MachineOperand(MachineOperand::VREG,
-                                             SymbolTable::getLabel());
-                inst1 =
-                    new LoadMInstruction(def->getParent()->getParent(),
-                                          operand, off);
-                def->getParent()->insertAfter(inst1);
-            }
-             if (operand) {
-                 inst = new StoreMInstruction(
-                        def->getParent()->getParent(), 
-                        temp, fp, new MachineOperand(*operand));}
+                auto operand = new MachineOperand(MachineOperand::VREG, SymbolTable::getLabel());
+                auto Imm_load = new LoadMInstruction(def->getParent()->getParent(), operand, off);
+                def->getParent()->insertAfter(Imm_load);
+                insert_str = new StoreMInstruction(def->getParent()->getParent(), src, fp, new MachineOperand(*operand));
+            }    
             else{
-                inst = new StoreMInstruction(def->getParent()->getParent(),
-                                                 temp,
-                                                 fp, off);
+                insert_str = new StoreMInstruction(def->getParent()->getParent(), src, fp, off);
             }
-        if (inst1)
-        inst1->insertAfter(inst);
-        else
-        def->getParent()->insertAfter(inst);
-    }
-    
+            def->getParent()->insertAfter(insert_str);
+        }
     }
 }
 
+ //回收寄存器
 void LinearScan::expireOldIntervals(Interval *interval)
 {
     // Todo
-    auto it = active.begin();
-    while (it != active.end()) {
-        if ((*it)->end >= interval->start)
-            return;
-        if ((*it)->rreg < 11) {
-            // general purpose registers
-            regs.push_back((*it)->rreg);
-            it = active.erase(find(active.begin(), active.end(), *it));
+    auto active_interval = active.begin();
+    while (active_interval != active.end()) {
+        if ((*active_interval)->end >= interval->start)
+            break;
+        else if((*active_interval)->rreg < 11) {
+            regs.push_back((*active_interval)->rreg);
+            active.erase(find(active.begin(), active.end(), *active_interval));
             sort(regs.begin(), regs.end());
         } 
     }
 }
 
+//将interval与active的最后一个活跃区间进行比较，置位spill
 void LinearScan::spillAtInterval(Interval *interval)
 {
     // Todo
-    auto spill = active.back();
-    if (spill->end > interval->end) {
-        spill->spill = true;
-        interval->rreg = spill->rreg;
+    auto active_end = active.back();
+    if (active_end->end > interval->end) {
+        active_end->spill = true;
+        interval->rreg = active_end->rreg;
         active.push_back(interval);
         sort(active.begin(), active.end(), compareEnd);
     } else {
