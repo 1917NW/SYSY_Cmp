@@ -153,15 +153,15 @@ void FunctionDef::genCode()
     }
 
     //没有ret指令，也没有条件跳转和无条件跳转指令
-    list<BasicBlock *> q;
-    std::set<BasicBlock *> v;
-    v.insert(entry);
-    q.push_back(func->getEntry());
-    while (!q.empty())
+    list<BasicBlock *> bbque;
+    std::set<BasicBlock *> bbset;
+    bbset.insert(entry);
+    bbque.push_back(func->getEntry());
+    while (!bbque.empty())
     {
         
-        auto bb = q.front();
-        q.pop_front();
+        auto bb = bbque.front();
+        bbque.pop_front();
         Instruction* last_i=(bb)->rbegin();
         if(last_i->isCond()||last_i->isUncond()||last_i->isRet())
             ;
@@ -174,10 +174,10 @@ void FunctionDef::genCode()
         for (auto succ = bb->succ_begin(); succ != bb->succ_end(); succ++)
         {
             //如果没有访问过程序流图中的此节点，则把该节点放入到队列中
-            if (v.find(*succ) == v.end())
+            if (bbset.find(*succ) == bbset.end())
             {
-                v.insert(*succ);
-                q.push_back(*succ);
+                bbset.insert(*succ);
+                bbque.push_back(*succ);
             }
         }
     }

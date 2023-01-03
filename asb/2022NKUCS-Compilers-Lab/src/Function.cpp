@@ -51,28 +51,28 @@ void Function::output() const
     }
 
     //基本块集合
-    std::set<BasicBlock *> v;
+    std::set<BasicBlock *> bbset;
 
     //双向链表
-    std::list<BasicBlock *> q;
-    q.push_back(entry);
-    v.insert(entry);
+    std::list<BasicBlock *> bbque;
+    bbque.push_back(entry);
+    bbset.insert(entry);
     //递归输出基本块
    
-    while (!q.empty())
+    while (!bbque.empty())
     {
         
-        auto bb = q.front();
-        q.pop_front();
+        auto bb = bbque.front();
+        bbque.pop_front();
         bb->output();
         //广度优先遍历
         for (auto succ = bb->succ_begin(); succ != bb->succ_end(); succ++)
         {
             //如果没有访问过程序流图中的此节点，则把该节点放入到队列中
-            if (v.find(*succ) == v.end())
+            if (bbset.find(*succ) == bbset.end())
             {
-                v.insert(*succ);
-                q.push_back(*succ);
+                bbset.insert(*succ);
+                bbque.push_back(*succ);
             }
         }
     }
@@ -88,29 +88,29 @@ void Function::genMachineCode(AsmBuilder* builder)
     builder->setFunction(cur_func);
     std::map<BasicBlock*, MachineBlock*> map;
 
-    list<BasicBlock*> q;
-    std::set<BasicBlock *> v;
-    v.insert(entry);
-    q.push_back(entry);
+    list<BasicBlock*> bbque;
+    std::set<BasicBlock *> bbset;
+    bbset.insert(entry);
+    bbque.push_back(entry);
     
-    while (!q.empty())
+    while (!bbque.empty())
     {
         
-        auto bb = q.front();
+        auto bb = bbque.front();
         
         bb->genMachineCode(builder);
         
         map[bb]=builder->getBlock();
-        q.pop_front();
+        bbque.pop_front();
         
         //广度优先遍历
         for (auto succ = bb->succ_begin(); succ != bb->succ_end(); succ++)
         {
             //如果没有访问过程序流图中的此节点，则把该节点放入到队列中
-            if (v.find(*succ) == v.end())
+            if (bbset.find(*succ) == bbset.end())
             {
-                v.insert(*succ);
-                q.push_back(*succ);
+                bbset.insert(*succ);
+                bbque.push_back(*succ);
             }
         }
         
