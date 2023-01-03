@@ -33,9 +33,14 @@ private:
     MachineFunction *func;
     std::vector<int> regs;
     std::map<MachineOperand *, std::set<MachineOperand *>> du_chains;
+
+    //未分配寄存器的虚拟寄存器对应的活跃区间的集合
     std::vector<Interval*> intervals;
+
+    //已分配寄存器的虚拟寄存器对应活跃区间的集合
     std::vector<Interval*> active;
     static bool compareStart(Interval*a, Interval*b);
+    static bool compareEnd(Interval* a, Interval* b);
     void expireOldIntervals(Interval *interval);
     void spillAtInterval(Interval *interval);
     void makeDuChains();
@@ -43,7 +48,7 @@ private:
     bool linearScanRegisterAllocation();
     void modifyCode();
     void genSpillCode();
-    static bool compareEnd(Interval* a, Interval* b);
+    
 public:
     LinearScan(MachineUnit *unit);
     void allocateRegisters();

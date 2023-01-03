@@ -93,6 +93,7 @@ void MachineOperand::output()
     case REG:
         PrintReg();
         break;
+    //有三类标签：块标签 全局变量地址标签 函数标签
     case LABEL:
         if (this->label.substr(0, 2) == ".L")
             fprintf(yyout, "%s", this->label.c_str());
@@ -194,24 +195,6 @@ void BinaryMInstruction::output()
         this->use_list[1]->output();
         fprintf(yyout, "\n");
         break;
-    case BinaryMInstruction::AND:
-        fprintf(yyout, "\tand ");
-        this->def_list[0]->output();
-        fprintf(yyout, ", ");
-        this->use_list[0]->output();
-        fprintf(yyout, ", ");
-        this->use_list[1]->output();
-        fprintf(yyout, "\n");
-        break;
-    case BinaryMInstruction::OR:
-        fprintf(yyout, "\torr ");
-        this->def_list[0]->output();
-        fprintf(yyout, ", ");
-        this->use_list[0]->output();
-        fprintf(yyout, ", ");
-        this->use_list[1]->output();
-        fprintf(yyout, "\n");
-        break;
     default:
         break;
     }
@@ -291,16 +274,18 @@ void StoreMInstruction::output()
     this->use_list[0]->output();
     fprintf(yyout, ", ");
     // store address
+    //str src [reg]
     if (this->use_list[1]->isReg() || this->use_list[1]->isVReg())
         fprintf(yyout, "[");
     this->use_list[1]->output();
+    //str src [reg #num]
     if (this->use_list.size() > 2) {
-            fprintf(yyout, ", ");
-            this->use_list[2]->output();
-        }
-        if (this->use_list[1]->isReg() || this->use_list[1]->isVReg())
-            fprintf(yyout, "]");
-        fprintf(yyout, "\n");
+        fprintf(yyout, ", ");
+        this->use_list[2]->output();
+    }
+    if (this->use_list[1]->isReg() || this->use_list[1]->isVReg())
+        fprintf(yyout, "]");
+    fprintf(yyout, "\n");
 }
 
 MovMInstruction::MovMInstruction(MachineBlock* p, int op, 
@@ -341,7 +326,6 @@ BranchMInstruction::BranchMInstruction(MachineBlock* p, int op,
     this->op=op;
     this->cond=cond;
     this->use_list.push_back(dst);
-    if(op==B)
     dst->setParent(this);
 
 }
@@ -447,7 +431,7 @@ void StackMInstrcuton::output()
         auto size = use_list.size();
         if (size <= 16) {
             this->use_list[0]->output();
-            for (long unsigned int i = 1; i < use_list.size(); i++) {
+            for (int i = 1; i < (int)use_list.size(); i++) {
                 fprintf(yyout, ", ");
                 this->use_list[i]->output();
             }
@@ -478,6 +462,7 @@ void MachineBlock::output()
     for(auto iter : inst_list){
         //函数跳转到父函数返回
         //恢复父函数的状态
+        //在bx lr前面插入 pop指令
         if(iter->isBX()){
             auto fp = new MachineOperand(MachineOperand::REG,11);
             auto lr = new MachineOperand(MachineOperand::REG,14);
@@ -509,7 +494,8 @@ void MachineFunction::output()
     auto fp = new MachineOperand(MachineOperand::REG, 11);
     auto sp = new MachineOperand(MachineOperand::REG, 13);
     auto lr = new MachineOperand(MachineOperand::REG, 14);
-    //保存寄存器
+
+    //插入push指令 保存寄存器
     auto cur_inst=new StackMInstrcuton(nullptr, StackMInstrcuton::PUSH, getSavedRegs(), fp,lr);
     cur_inst->output();
     
@@ -517,29 +503,20 @@ void MachineFunction::output()
     //mov fp,sp
    (new MovMInstruction(nullptr, MovMInstruction::MOV, fp, sp))->output();
 
-    //为局部变量分配栈内空间
+    //sub sp sp #num 为局部变量分配栈内空间
     int off = AllocSpace(0);
-    if (off) {
+    if (off > 0) {
         auto size = new MachineOperand(MachineOperand::IMM, off);
         if (off < -255 || off > 255) {
             auto r4 = new MachineOperand(MachineOperand::REG, 4);
-            (new LoadMInstruction(nullptr,r4, size))
-                ->output();
-            (new BinaryMInstruction(nullptr, BinaryMInstruction::SUB, sp, sp,
-                                    r4))
-                ->output();
+            (new LoadMInstruction(nullptr,r4, size))->output();
+            (new BinaryMInstruction(nullptr, BinaryMInstruction::SUB, sp, sp, r4))->output();
         } else {
-            (new BinaryMInstruction(nullptr, BinaryMInstruction::SUB, sp, sp,
-                                    size))
-                ->output();
+            (new BinaryMInstruction(nullptr, BinaryMInstruction::SUB, sp, sp, size))->output();
         }
     }
 
-  
 
-    // Traverse all the block in block_list to print assembly code.
-    
-     
     block_list[0]->output();
     for(int i=1; i<(int)block_list.size();i++){
         fprintf(yyout, ".L%d:\n", block_list[i]->getNo());
@@ -555,32 +532,30 @@ void MachineUnit::PrintGlobalDecl()
    
     // TODO:
     // You need to print global variable/const declarition code;
-     std::vector<int> constIdx;
+     std::vector<int> constIndex;
      if(globalVarList.size()>0){
         fprintf(yyout, "\t.data\n");
         for(int i=0;i<(int)globalVarList.size();i++){
             IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(globalVarList[i].id->getSymPtr());
             if(se->getType()==TypeSystem::constIntType){
-                constIdx.push_back(i);
+                constIndex.push_back(i);
             }
             else{
             fprintf(yyout, "\t.global %s\n", se->toStr().c_str());
             fprintf(yyout, "\t.align 4\n");
-            fprintf(yyout, "\t.size %s, %d\n", se->toStr().c_str(),
-                    4);
+            fprintf(yyout, "\t.size %s, %d\n", se->toStr().c_str(), 4);
             fprintf(yyout, "%s:\n", se->toStr().c_str());
             fprintf(yyout, "\t.word %d\n", (int)se->getValue());
             }
         }
      }
-     if(!constIdx.empty()){
+     if(!constIndex.empty()){
         fprintf(yyout, "\t.section .rodata\n");
-        for (auto i : constIdx) {
+        for (auto i : constIndex) {
             IdentifierSymbolEntry *se = dynamic_cast<IdentifierSymbolEntry *>(globalVarList[i].id->getSymPtr());
             fprintf(yyout, "\t.global %s\n", se->toStr().c_str());
             fprintf(yyout, "\t.align 4\n");
-            fprintf(yyout, "\t.size %s, %d\n", se->toStr().c_str(),
-                    4);
+            fprintf(yyout, "\t.size %s, %d\n", se->toStr().c_str(), 4);
             fprintf(yyout, "%s:\n", se->toStr().c_str());
             fprintf(yyout, "\t.word %d\n", (int)se->getValue());
         }

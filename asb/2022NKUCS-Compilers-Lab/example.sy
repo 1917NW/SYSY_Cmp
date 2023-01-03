@@ -1,5 +1,11 @@
-int main(){
-
-if (1 < 8 != 7 % 2) { putch(67); }
-return 3;
+int main() {
+    int a;
+    a = 10;
+    if (+-!!!a) {
+        a = - - -1;
+    }
+    else {
+        a = 0;
+    }
+    return a;
 }
