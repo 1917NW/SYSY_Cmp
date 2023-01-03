@@ -496,8 +496,7 @@ void MachineFunction::output()
     auto lr = new MachineOperand(MachineOperand::REG, 14);
 
     //插入push指令 保存寄存器
-    auto cur_inst=new StackMInstrcuton(nullptr, StackMInstrcuton::PUSH, getSavedRegs(), fp,lr);
-    cur_inst->output();
+   (new StackMInstrcuton(nullptr, StackMInstrcuton::PUSH, getSavedRegs(), fp,lr))->output();
     
     //切换栈帧
     //mov fp,sp
