@@ -141,6 +141,7 @@ void FunctionDef::genCode()
             if (i->isRet())
                 hasRet = true;
         }
+
         //把ret后面所有的块都删除
         if (hasRet) {
             while (block->succ_begin() != block->succ_end()) {
@@ -151,6 +152,7 @@ void FunctionDef::genCode()
         }
     }
 
+    //没有ret指令，也没有条件跳转和无条件跳转指令
     list<BasicBlock *> q;
     std::set<BasicBlock *> v;
     v.insert(entry);
@@ -217,7 +219,7 @@ void BinaryExpr::genCode()
 
         bb = builder->getInsertBB();
         BasicBlock *truebb, *falsebb, *tempbb;
-        //临时假块
+        //临时块
         truebb = new BasicBlock(func);
         falsebb = new BasicBlock(func);
         tempbb = new BasicBlock(func);
@@ -293,7 +295,6 @@ void BinaryExpr::genCode()
             break;
         }
         new CmpInstruction(cmpopcode, dst, src1, src2, bb);
-        //
         
     }
     //算术运算表达式
@@ -329,13 +330,13 @@ void BinaryExpr::genCode()
 }
 
 void UnaryExpr::genCode(){
-
+//做条件表达式
+//做运算表达式
     expr->genCode();
 
     if (op == NOT) {
         BasicBlock* bb = builder->getInsertBB();
         Operand* src = expr->getOperand();
-       
         new XorInstruction(dst, src, bb);
         
     } else if (op == SUB) {
@@ -355,12 +356,9 @@ void Constant::genCode()
 
 void Id::genCode()
 {
-    
     BasicBlock *bb = builder->getInsertBB();
-   
     Operand *addr = dynamic_cast<IdentifierSymbolEntry*>(symbolEntry)->getAddr();
     new LoadInstruction(dst, addr, bb);
-    
 }
 
 void IfStmt::genCode()
@@ -378,13 +376,13 @@ void IfStmt::genCode()
     
      bb = builder->getInsertBB();
      BasicBlock *truebb, *falsebb, *tempbb;
-        //临时假块
+        //临时块
      truebb = new BasicBlock(func);
      falsebb = new BasicBlock(func);
      tempbb = new BasicBlock(func);
      
      cond->trueList().push_back(new CondBrInstruction(truebb, tempbb, cond->getOperand(), bb));
-        //在tempbb中设置跳转块为falsebb
+
      cond->falseList().push_back(new UncondBrInstruction(falsebb, tempbb));
 
     backPatch(cond->trueList(), then_bb);
@@ -400,6 +398,7 @@ void IfStmt::genCode()
 
     builder->setInsertBB(end_bb);
 }
+
 void NullStmt::genCode(){
 
 }
@@ -427,7 +426,7 @@ void WhileStmt::genCode(){
    cond->genCode();
    bb = builder->getInsertBB();
      BasicBlock *truebb, *falsebb, *tempbb;
-        //临时假块
+        //临时块
      truebb = new BasicBlock(func);
      falsebb = new BasicBlock(func);
      tempbb = new BasicBlock(func);
@@ -716,12 +715,10 @@ void IfStmt::typeCheck()
 void IfElseStmt::typeCheck()
 {
     // Todo
-  cond->typeCheck();
+    cond->typeCheck();
     if(((IntType*)(cond->getType()))->getSize()!=1){
        ExprNode* temp=cond;
         cond=new ImplicitCastExpr(temp,TypeSystem::boolType);
-        
-       
     }
   
     thenStmt->typeCheck();
@@ -836,6 +833,7 @@ void CallExpr::typeCheck(){
   
 
     SymbolEntry* se=this->getSymPtr();
+    
     
     while(se){
         vector<Type*>* pSe=((FunctionType*)(se->getType()))->GetParamsType();

@@ -1,7 +1,12 @@
-#include "sylib.h"
-#include<stdio.h>
+int a;
+int func(int p){
+	p = p - 1;
+	return p;
+}
 int main(){
-    int a=2;
-    int n=getint();
-    putint(a);
+	int b;
+	a = 11;
+	b = func(a);
+	putint(b);
+	return b;
 }
