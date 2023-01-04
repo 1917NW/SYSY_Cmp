@@ -429,8 +429,7 @@ MachineOperand* Instruction::genMachineOperand(Operand* ope)
         else if(id_se->isParam()){
             auto number=id_se->getParamNo();
             if(number<4)
-            mope = new MachineOperand(MachineOperand::REG,
-                                          number);
+                mope = new MachineOperand(MachineOperand::REG, number);
             else{
                 mope = new MachineOperand(MachineOperand::REG, 3);
             }
@@ -693,8 +692,7 @@ void CmpInstruction::genMachineCode(AsmBuilder* builder)
         nowCmpCond=opcode;
         
         //cmp src1,src2
-        cur_inst = new CmpMInstruction(cur_block, src1,
-                                       src2, opcode);
+        cur_inst = new CmpMInstruction(cur_block, src1, src2, opcode);
         cur_block->InsertInst(cur_inst);
 
 }
@@ -705,8 +703,7 @@ void UncondBrInstruction::genMachineCode(AsmBuilder* builder)
     //b .Lb
     auto cur_block = builder->getBlock();
     MachineOperand* dst = genMachineLabel(branch->getNo());
-    auto cur_inst =
-        new BranchMInstruction(cur_block, BranchMInstruction::B, dst);
+    auto cur_inst = new BranchMInstruction(cur_block, BranchMInstruction::B, dst);
     cur_block->InsertInst(cur_inst);
 }
 
@@ -752,8 +749,7 @@ void RetInstruction::genMachineCode(AsmBuilder* builder)
             cur_block->InsertInst(new LoadMInstruction(cur_block, r0, src));
             }else{
                 //mov r0 src
-                cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst,
-                                           src);
+                cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src);
                 cur_block->InsertInst(cur_inst);
             }
             
@@ -763,8 +759,7 @@ void RetInstruction::genMachineCode(AsmBuilder* builder)
         //那么不需要mov指令，因为function的结果就存放在r0中
         else{
             if(operands[0]!=RetRes){
-                 cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst,
-                                           src);
+                cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src);
                 cur_block->InsertInst(cur_inst);
             }
        
@@ -778,14 +773,12 @@ void RetInstruction::genMachineCode(AsmBuilder* builder)
         new MachineOperand(MachineOperand::IMM, cur_func->AllocSpace(0));
     
    
-    auto add_sp_MI = new BinaryMInstruction(cur_block, BinaryMInstruction::ADD,
-                                           sp, sp, size);
+    auto add_sp_MI = new BinaryMInstruction(cur_block, BinaryMInstruction::ADD, sp, sp, size);
     cur_block->InsertInst(add_sp_MI);
     
     //bx lr
     auto lr = new MachineOperand(MachineOperand::REG, 14);
-    auto bx_MI =
-        new BranchMInstruction(cur_block, BranchMInstruction::BX, lr);
+    auto bx_MI = new BranchMInstruction(cur_block, BranchMInstruction::BX, lr);
     cur_block->InsertInst(bx_MI);
 }
 
@@ -825,9 +818,8 @@ void ZextInstruction::genMachineCode(AsmBuilder* builder){
     else{
     //mov reg1 reg2
      src = genMachineOperand(operands[1]);
-     cur_inst =
-        new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src);
-    cur_block->InsertInst(cur_inst);
+     cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src);
+     cur_block->InsertInst(cur_inst);
     }
 }
 
@@ -840,20 +832,18 @@ void XorInstruction::genMachineCode(AsmBuilder* builder){
     auto cur_block = builder->getBlock();
     auto dst = genMachineOperand(operands[0]);
     if(operands[1]!=CmpRes){
-    MachineOperand*  src = genMachineOperand(operands[1]);
+        MachineOperand*  src = genMachineOperand(operands[1]);
+
     auto zero= genMachineImm(0);
     
-    auto cmp_inst=new CmpMInstruction(cur_block, src,
-                                       zero, CmpMInstruction::NE);
+    auto cmp_inst=new CmpMInstruction(cur_block, src, zero, CmpMInstruction::NE);
     cur_block->InsertInst(cmp_inst);                
     }
     auto trueRes = genMachineImm(1);
     auto falseRes = genMachineImm(0);
-    auto cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst,
-                                        trueRes, MachineInstruction::EQ);
+    auto cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, trueRes, MachineInstruction::EQ);
     cur_block->InsertInst(cur_inst);
-    cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst,
-                                   falseRes, MachineInstruction::NE);
+    cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, falseRes, MachineInstruction::NE);
     cur_block->InsertInst(cur_inst);
 
 }
@@ -874,7 +864,7 @@ void CallInstruction::genMachineCode(AsmBuilder* builder){
         }
         else{
             if(operands[i]==RetRes)
-            src=genMachineReg(0);
+                src=genMachineReg(0);
             cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src);
         }
         cur_block->InsertInst(cur_inst);

@@ -436,7 +436,7 @@ void StackMInstrcuton::output()
                 this->use_list[i]->output();
             }
         }
-         fprintf(yyout, "}\n");
+        fprintf(yyout, "}\n");
     }
 }
 

@@ -172,7 +172,7 @@ bool LinearScan::linearScanRegisterAllocation()
     //重置寄存器
     for (int i = 4; i < 11; i++)
         regs.push_back(i);
-     for (auto& i : intervals) {
+    for (auto& i : intervals){
         //回收寄存器
         expireOldIntervals(i);
 
