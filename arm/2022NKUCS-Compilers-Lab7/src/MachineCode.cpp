@@ -584,13 +584,13 @@ void MachineUnit::output()
 }
 
 void MachineInstruction::insertBefore(MachineInstruction* inst) {
-    auto& instructions = parent->getInsts();
-    auto it = std::find(instructions.begin(), instructions.end(), this);
-    instructions.insert(it, inst);
+    auto& inst_list = parent->getInsts();
+    auto target = std::find(inst_list.begin(), inst_list.end(), this);
+    inst_list.insert(target, inst);
 }
 
 void MachineInstruction::insertAfter(MachineInstruction* inst) {
-    auto& instructions = parent->getInsts();
-    auto it = std::find(instructions.begin(), instructions.end(), this);
-    instructions.insert(++it, inst);
+    auto& inst_list = parent->getInsts();
+    auto target = std::find(inst_list.begin(), inst_list.end(), this);
+    inst_list.insert(++target, inst);
 }

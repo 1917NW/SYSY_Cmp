@@ -280,10 +280,10 @@ void LinearScan::expireOldIntervals(Interval *interval)
 void LinearScan::spillAtInterval(Interval *interval)
 {
     // Todo
-    auto active_end = active.back();
-    if (active_end->end > interval->end) {
-        active_end->spill = true;
-        interval->rreg = active_end->rreg;
+    auto active_end = active.end();
+    if ((*active_end)->end > interval->end) {
+        (*active_end)->spill = true;
+        interval->rreg =  (*active_end)->rreg;
         active.push_back(interval);
         sort(active.begin(), active.end(), compareEnd);
     } else {
