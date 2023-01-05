@@ -256,6 +256,10 @@ StoreMInstruction::StoreMInstruction(MachineBlock* p,
     this->type = MachineInstruction::STORE;
     this->op = -1;
     this->cond = cond;
+    if(src1->isParam()){
+        isParam=true;
+        ParamNo=src1->getStackParam();
+    }
     this->use_list.push_back(src1);
     this->use_list.push_back(src2);
     if (src3)
@@ -468,6 +472,15 @@ void MachineBlock::output()
             auto lr = new MachineOperand(MachineOperand::REG,14);
             auto pop_inst=new StackMInstrcuton(this,StackMInstrcuton::POP,parent->getSavedRegs(),fp,lr);
             pop_inst->output();
+        }
+        if(iter->isStr()){
+          if(((StoreMInstruction*)iter)->isParam==true){
+            int off= (((int)parent->getSavedRegs().size())+2+((StoreMInstruction*)iter)->ParamNo)*4;
+            auto size = new MachineOperand(MachineOperand::IMM, off);
+            auto fp = new MachineOperand(MachineOperand::REG, 11);
+            auto r3 = new MachineOperand(MachineOperand::REG, 3);
+            (new LoadMInstruction(nullptr,r3,fp,size))->output();
+          }
         }
         iter->output();
         

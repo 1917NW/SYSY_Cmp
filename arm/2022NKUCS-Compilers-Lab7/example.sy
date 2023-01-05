@@ -1,4 +1,4 @@
-int max(int a,int b){
+int max(int a,int b,int c,int d,int m,int e){
     if(a>b)
         return a;
     else
@@ -6,13 +6,9 @@ int max(int a,int b){
 }
 
 int main() {
-    int a;
-    a = 10;
-    if (+-!!!a) {
-        a = - - -1;
-    }
-    else {
-        a = 0;
-    }
+    int a=3;
+    int b=4;
+    int c=5;
+    max(a,b,4,5,c,b);
     return a;
 }

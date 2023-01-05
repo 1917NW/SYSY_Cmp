@@ -432,6 +432,8 @@ MachineOperand* Instruction::genMachineOperand(Operand* ope)
                 mope = new MachineOperand(MachineOperand::REG, number);
             else{
                 mope = new MachineOperand(MachineOperand::REG, 3);
+                mope->setParam();
+                mope->setStackParam(number-4);
             }
         }
         else{
@@ -504,9 +506,9 @@ void LoadInstruction::genMachineCode(AsmBuilder* builder)
         // example: load r1, [fp, #4]
         auto dst = genMachineOperand(operands[0]);
         //src1 == fp
-        auto src1 = genMachineReg(11);
-        auto src2 = genMachineImm(dynamic_cast<TemporarySymbolEntry*>(operands[1]->getEntry())->getOffset());
-        cur_inst = new LoadMInstruction(cur_block, dst, src1, src2);
+        auto fp = genMachineReg(11);
+        auto off = genMachineImm(dynamic_cast<TemporarySymbolEntry*>(operands[1]->getEntry())->getOffset());
+        cur_inst = new LoadMInstruction(cur_block, dst, fp, off);
         cur_block->InsertInst(cur_inst);
     }
     // Load operand from temporary variable
@@ -853,10 +855,13 @@ void CallInstruction::genMachineCode(AsmBuilder* builder){
     auto cur_block = builder->getBlock();
     MachineInstruction* cur_inst;
 
-    //把参数放入到r0 r1 r2 r3(暂时不考虑大于4个参数的)
+    //把参数放入到r0 r1 r2 r3
     int regNo=0;
     MachineOperand* src;
-    for(int i=1;i<(int)operands.size();i++){
+    int i=1;
+    bool morethan4 = ((int)operands.size()>5);
+    if(!morethan4){
+    for( ;i<(int)operands.size();i++){
         auto dst=genMachineReg(regNo++);
         src=genMachineOperand(operands[i]);
         if(src->isImm()){
@@ -869,6 +874,52 @@ void CallInstruction::genMachineCode(AsmBuilder* builder){
         }
         cur_block->InsertInst(cur_inst);
     }
+    }
+    else{
+    for( ;i<5;i++){
+        auto dst=genMachineReg(regNo++);
+        src=genMachineOperand(operands[i]);
+        if(src->isImm()){
+            cur_inst = new LoadMInstruction(cur_block, dst, src);
+        }
+        else{
+            if(operands[i]==RetRes)
+                src=genMachineReg(0);
+            cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src);
+        }
+        cur_block->InsertInst(cur_inst);
+    }
+    //push 参数
+    int push_stack_arg=0;
+    int count=i;
+    for(i=((int)operands.size()-1);i>=count;i--){
+            push_stack_arg++;
+            auto dst = genMachineVReg();
+            src = genMachineOperand(operands[i]);
+            if(src->isImm()){
+                cur_inst = new LoadMInstruction(cur_block, dst, src);
+                src=new MachineOperand(*dst);
+            }
+            else{
+                if(operands[i]==RetRes)
+                    src=genMachineReg(0);
+                cur_inst = new MovMInstruction(cur_block, MovMInstruction::MOV, dst, src);
+                src=new MachineOperand(*dst);
+            }
+            
+            cur_block->InsertInst(cur_inst);
+            cur_inst=(new StackMInstrcuton(cur_block, StackMInstrcuton::PUSH,  src));
+            cur_block->InsertInst(cur_inst);
+        }
+    //pop 参数
+    MachineOperand* sp = genMachineReg(13);
+    int off = push_stack_arg * 4;
+    auto size = new MachineOperand(MachineOperand::IMM, off);
+    cur_inst = new BinaryMInstruction(cur_block, BinaryMInstruction::ADD, sp, sp, size);
+    cur_block->InsertInst(cur_inst);
+    }
+
+    
 
     //bx func_name
     auto func_label = new MachineOperand(func->toStr(),MachineOperand::FUNCLABEL);

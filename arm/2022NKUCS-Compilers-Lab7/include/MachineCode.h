@@ -31,6 +31,8 @@ private:
     int val;  // value of immediate number
     int reg_no; // register no
     std::string label; // address label
+    bool isStackParam=false;
+    int stackParam;
 public:
     enum { IMM, VREG, REG, LABEL,FUNCLABEL };
     MachineOperand(int tp, int val);
@@ -41,6 +43,10 @@ public:
     bool isReg() { return this->type == REG; };
     bool isVReg() { return this->type == VREG; };
     bool isLabel() { return this->type == LABEL; };
+    void setParam() {isStackParam=true;};
+    void setStackParam(int stackParam) {this->stackParam=stackParam;};
+    int getStackParam(){return stackParam;};
+    bool isParam() {return isStackParam;};
     int getVal() {return this->val; };
     int getReg() {return this->reg_no; };
     void setReg(int regno) {this->type = REG; this->reg_no = regno;};
@@ -77,6 +83,7 @@ public:
     bool isBX() const {return type==BRANCH && op==2;};
     bool isBL() const {return type==BRANCH && op==1;};
     bool isB() const {return type==BRANCH && op==0;};
+    bool isStr() const {return type==STORE;}
     void insertBefore(MachineInstruction*);
     void insertAfter(MachineInstruction*);
     std::vector<MachineOperand*>& getDef() {return def_list;};
@@ -107,6 +114,8 @@ public:
 class StoreMInstruction : public MachineInstruction
 {
 public:
+    bool isParam=false;
+    int ParamNo=0;
     StoreMInstruction(MachineBlock* p,
                     MachineOperand* src1, MachineOperand* src2, MachineOperand* src3 = nullptr, 
                     int cond = MachineInstruction::NONE);
